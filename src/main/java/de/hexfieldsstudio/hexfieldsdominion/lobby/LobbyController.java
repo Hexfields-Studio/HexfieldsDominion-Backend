@@ -1,19 +1,16 @@
 package de.hexfieldsstudio.hexfieldsdominion.lobby;
 
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import de.hexfieldsstudio.hexfieldsdominion.lobby.dto.CreateLobbyDTO;
 
 @RestController
-@RequestMapping(path = "/lobbies", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/lobbies")
 public class LobbyController {
 
-    @GetMapping
+    private LobbyManager lobbyManager;
+
+    @PatchMapping
     public void createLobby(@RequestBody CreateLobbyDTO configs) {
         
     }

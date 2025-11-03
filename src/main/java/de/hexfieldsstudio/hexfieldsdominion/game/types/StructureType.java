@@ -1,6 +1,6 @@
 package de.hexfieldsstudio.hexfieldsdominion.game.types;
 
-public enum StructureType{
+public enum StructureType {
     TOWN,
     HARBOUR
 }

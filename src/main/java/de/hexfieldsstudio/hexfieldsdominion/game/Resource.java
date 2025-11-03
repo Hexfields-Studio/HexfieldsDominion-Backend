@@ -1,5 +1,5 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
-public class Ressource{
+public class Resource{
     private String name;
 }

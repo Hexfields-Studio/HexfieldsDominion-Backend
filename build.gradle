@@ -8,11 +8,7 @@ group = 'de.hexfieldsstudio.hexfieldsdominion'
 version = '0.0.1-SNAPSHOT'
 description = 'DH Projekt "Hexfields: Dominion"'
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
-}
+java {}
 
 configurations {
 	compileOnly {

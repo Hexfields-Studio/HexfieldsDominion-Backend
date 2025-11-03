@@ -4,6 +4,6 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class PickDicePairDTO extends PlayerActionDTO{
+public class PickDicePairDTO extends PlayerActionDTO {
     private int index;
 }

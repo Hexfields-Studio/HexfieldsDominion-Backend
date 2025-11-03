@@ -1,6 +1,5 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
@@ -11,6 +10,7 @@ public class Match {
 
     private List<PlayerRepresentation> players;
     private List<Field> fields;
+    private List<Structure> structures;
     private Lobby lobby;
 
 }

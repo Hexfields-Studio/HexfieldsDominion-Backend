@@ -1,9 +1,6 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.PickDicePairDTO;
@@ -11,17 +8,24 @@ import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradeBankDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradePlayerDTO;
 
+import java.util.List;
+import java.util.UUID;
+
 @RestController
-@RequestMapping(path = "/games", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/games")
 public class GameController {
-    
-    @PostMapping("/{gameUUID}")
-    private void playerAction(PlayerActionDTO request) {
+
+    private List<Match> matches;
+
+    @PostMapping("/{gameUUID}/endTurn")
+    private void endTurn() {
 
     }
-    
-    @PostMapping("/{gameUUID}")
-    private void endTurn() {
+
+    @PostMapping("/{gameUUID}/makeMove")
+    private void playerAction(@PathVariable UUID gameUUID,
+                              @RequestBody PlayerActionDTO request
+    ) {
 
     }
 
@@ -40,4 +44,5 @@ public class GameController {
     private void pickDicePair(PickDicePairDTO dto) {
         
     }
+
 }
