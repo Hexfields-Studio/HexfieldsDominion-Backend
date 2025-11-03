@@ -2,8 +2,6 @@ package de.hexfieldsstudio.hexfieldsdominion;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
@@ -13,10 +11,5 @@ public class HexfieldsDominionApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(HexfieldsDominionApplication.class, args);
 	}
-
-    @GetMapping("/hello")
-    public String hello(@RequestParam(value = "name", defaultValue = "World") String name) {
-        return String.format("Hello %s!", name);
-    }
 
 }
