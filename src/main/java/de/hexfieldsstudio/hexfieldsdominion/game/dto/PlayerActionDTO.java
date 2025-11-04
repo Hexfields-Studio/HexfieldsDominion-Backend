@@ -7,15 +7,15 @@ import de.hexfieldsstudio.hexfieldsdominion.game.types.PlayerActionType;
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,          // use the "name" to distinguish types
     include = JsonTypeInfo.As.PROPERTY,  // look for a field in JSON
-    property = "type"                    // the field name to look at
+    property = "type",                    // the field name to look at
     visible = true                       // do not ignore the "type" field => use setType() also
 )
 
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = TradePlayerDTO.class, name = PlayerActionType.TRADE_PLAYER),
-    @JsonSubTypes.Type(value = TradeBankDTO.class, name = PlayerActionType.TRADE_BANK),
-    @JsonSubTypes.Type(value = BuildActionDTO.class, name = PlayerActionType.BUILD),
-    @JsonSubTypes.Type(value = PickDicePairDTO.class, name = PlayerActionType.PICK_DICE_PAIR),
+    @JsonSubTypes.Type(value = TradePlayerDTO.class, name = "TRADE_PLAYER"),
+    @JsonSubTypes.Type(value = TradeBankDTO.class, name = "TRADE_BANK"),
+    @JsonSubTypes.Type(value = BuildActionDTO.class, name = "BUILD"),
+    @JsonSubTypes.Type(value = PickDicePairDTO.class, name = "PICK_DICE_PAIR"),
 })
 
 public abstract class PlayerActionDTO {
