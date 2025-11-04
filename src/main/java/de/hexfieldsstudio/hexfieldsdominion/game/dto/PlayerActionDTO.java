@@ -3,6 +3,8 @@ package de.hexfieldsstudio.hexfieldsdominion.game.dto;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.PlayerActionType;
+import lombok.Getter;
+import lombok.Setter;
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,          // use the "name" to distinguish types
@@ -18,25 +20,9 @@ import de.hexfieldsstudio.hexfieldsdominion.game.types.PlayerActionType;
     @JsonSubTypes.Type(value = PickDicePairDTO.class, name = "PICK_DICE_PAIR"),
 })
 
+@Getter
+@Setter
 public abstract class PlayerActionDTO {
-
     private PlayerActionType type;
     private String sessionId;
-
-    public void setType(PlayerActionType type){
-        this.type = type;
-    }
-
-    public void setSessionId(String sessionId){
-        this.sessionId = sessionId;
-    }
-
-    public PlayerActionType getType(){
-        return type;
-    }
-
-     public String getSessionId(){
-        return sessionId;
-    }
-    
 }
