@@ -22,4 +22,20 @@ public abstract class PlayerActionDTO {
     private PlayerActionType type;
     private String sessionId;
 
+    public void setType(PlayerActionType type){
+        this.type = type;
+    }
+
+    public void setSessionId(String sessionId){
+        this.sessionId = sessionId;
+    }
+
+    public PlayerActionType getType(){
+        return type;
+    }
+
+     public String getSessionId(){
+        return sessionId;
+    }
+    
 }
