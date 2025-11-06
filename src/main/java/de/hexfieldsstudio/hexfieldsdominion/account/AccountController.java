@@ -18,7 +18,4 @@ public class AccountController {
 
     }
 
-    private void guest() {
-
-    }
 }
