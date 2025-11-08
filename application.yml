@@ -1,0 +1,3 @@
+app:
+  lobbyManager:
+    initialCapacity: 50

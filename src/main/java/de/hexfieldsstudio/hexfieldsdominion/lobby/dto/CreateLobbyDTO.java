@@ -1,7 +1,10 @@
 package de.hexfieldsstudio.hexfieldsdominion.lobby.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class CreateLobbyDTO {
-
-    String[] configs;
-
+    private String[] configs;
 }
