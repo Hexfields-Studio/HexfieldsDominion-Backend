@@ -10,24 +10,18 @@ import de.hexfieldsstudio.hexfieldsdominion.lobby.dto.CreateLobbyDTO;
 import java.util.HashMap;
 import java.util.Map;
 
-/*
-Code eingeben und wenn logged in auf lobby
-1. Authentizierung (Skip)
-2. Lobby suchen und zurücksenden
-* */
 @Slf4j
 @RestController
-@RequestMapping(path = "/lobbies")
 public class LobbyController {
 
-    private LobbyManager lobbyManager;
+    private final LobbyManager lobbyManager;
 
     @Autowired
     public LobbyController(LobbyManager lobbyManager) {
         this.lobbyManager = lobbyManager;
     }
 
-    @PatchMapping(produces = "application/json")
+    @PatchMapping(path = "/lobbies", produces = "application/json")
     public ResponseEntity<Map<String, String>> createLobby(@RequestBody(required = false) CreateLobbyDTO configs) {
         Map<String, String> res = new HashMap<>();
         try{
@@ -44,9 +38,16 @@ public class LobbyController {
         }
     }
 
-    @GetMapping("/{code}")
-    public void joinLobby(@PathVariable String code) {
+    @GetMapping("/{lobbyCode}")
+    public ResponseEntity<Map<String, Object>> joinLobby(@PathVariable String lobbyCode) {
+        Map<String, Object> res = new HashMap<>();
 
+        if (lobbyManager.joinLobby(lobbyCode, res)){
+            return ResponseEntity.ok(res);
+        }else{
+            res.put("error", "Lobby with code " + lobbyCode + " not found.");
+            return ResponseEntity.badRequest().body(res);
+        }
     }
 
 }
