@@ -8,11 +8,7 @@ group = 'de.hexfieldsstudio.hexfieldsdominion'
 version = '0.0.1-SNAPSHOT'
 description = 'DH Projekt "Hexfields: Dominion"'
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
-}
+java {}
 
 configurations {
 	compileOnly {
@@ -25,6 +21,8 @@ repositories {
 }
 
 dependencies {
+    implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+
 	//implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	//implementation 'org.springframework.session:spring-session-jdbc'
@@ -34,6 +32,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springframework.data:spring-data-commons:3.2.6'
 }
 
 tasks.named('test') {
