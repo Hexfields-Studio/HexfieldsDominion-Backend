@@ -7,6 +7,7 @@ WORKDIR /app
 # Copy project files
 COPY . .
 
+RUN chmod +x gradlew
 RUN ./gradlew clean build -x test
 
 # ======== 2. Runtime stage ========
