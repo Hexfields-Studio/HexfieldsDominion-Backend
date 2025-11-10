@@ -12,7 +12,7 @@ public class WebConfiguration implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173", "https://hexfieldsdominion-backend.onrender.com/")
+                .allowedOrigins("http://localhost:5173", "https://hexfields-studio.github.io/HexfieldsDominion")
                 .allowedMethods("*");
     }
 }
