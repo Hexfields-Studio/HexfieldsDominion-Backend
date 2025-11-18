@@ -22,7 +22,12 @@ public class LobbyController {
         this.lobbyManager = lobbyManager;
     }
 
-    @PatchMapping(produces = "application/json")
+    @RequestMapping(value = "/", method = {RequestMethod.GET, RequestMethod.HEAD})
+    public String root() {
+        return "OK";
+    }
+
+    @PatchMapping(path = "/lobbies",produces = "application/json")
     public ResponseEntity<Map<String, String>> createLobby(@RequestBody(required = false) CreateLobbyDTO configs) {
         Map<String, String> res = new HashMap<>();
         try{
