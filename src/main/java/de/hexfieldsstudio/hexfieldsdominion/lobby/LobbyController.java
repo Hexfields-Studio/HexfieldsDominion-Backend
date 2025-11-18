@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
+@RequestMapping("/lobbies")
 @RestController
 public class LobbyController {
 
