@@ -1,12 +1,19 @@
 app:
   lobbyManager:
     initialCapacity: 50
+  jwt:
+    secretKey: ${JWT_SECRET_KEY}
 
 spring:
   application:
     name: hexfields-dominion
   config:
     import: optional:file:.env[.properties]
+  datasource:
+    driver-class-name: ${DB_DRIVER_CLASS}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
