@@ -1,5 +1,17 @@
 app:
   lobbyManager:
     initialCapacity: 50
+
+spring:
+  application:
+    name: hexfields-dominion
+  config:
+    import: optional:file:.env[.properties]
+  jpa:
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: create
+
 server:
   port: ${PORT:8080}

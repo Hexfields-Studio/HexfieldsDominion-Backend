@@ -1,6 +1,6 @@
 package de.hexfieldsstudio.hexfieldsdominion.lobby;
 
-import de.hexfieldsstudio.hexfieldsdominion.AppConfig;
+import de.hexfieldsstudio.hexfieldsdominion.config.AppConfig;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.Player;
 import org.springframework.stereotype.Component;
 
