@@ -1,6 +1,9 @@
 app:
   lobbyManager:
     initialCapacity: 50
+  frontend:
+    host: https://hexfields-studio.github.io
+    basePath: /HexfieldsDominion
 
 spring:
   application:
