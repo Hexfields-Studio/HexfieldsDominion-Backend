@@ -1,4 +1,4 @@
-package de.hexfieldsstudio.hexfieldsdominion.account;
+package de.hexfieldsstudio.hexfieldsdominion.account.user;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,7 +25,7 @@ public class User implements UserDetails {
     private Integer id;
     @Column(name = "email", nullable = false, length = 255, unique = true)
     private String email;
-    @Column(name = "password", nullable = false, length = 255)
+    @Column(name = "password", nullable = true, length = 255)
     private String password;
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 255)

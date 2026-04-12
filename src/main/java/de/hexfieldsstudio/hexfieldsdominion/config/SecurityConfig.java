@@ -1,16 +1,19 @@
 package de.hexfieldsstudio.hexfieldsdominion.config;
 
+import de.hexfieldsstudio.hexfieldsdominion.config.filter.AccessTokenAuthenticationFilter;
+import de.hexfieldsstudio.hexfieldsdominion.config.filter.RefreshTokenAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -24,11 +27,9 @@ public class SecurityConfig {
 
     @Value("${app.frontend.host}")
     private String frontendHost;
-    @Value("${app.frontend.basePath}")
-    private String frontendBasePath;
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
-    private final AuthenticationProvider authenticationProvider;
+    private final AccessTokenAuthenticationFilter accessTokenAuthenticationFilter;
+    private final RefreshTokenAuthenticationFilter refreshTokenAuthenticationFilter;
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
@@ -44,17 +45,18 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        RequestMatcher routesNoAuthCheck = new RegexRequestMatcher("/auth/(guest|register|login|logout)", null);
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(customizer -> customizer.configurationSource(corsConfigurationSource()))
-                .formLogin(configurer -> configurer.loginPage(frontendHost + frontendBasePath + "/"))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(routesNoAuthCheck).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(accessTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(refreshTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

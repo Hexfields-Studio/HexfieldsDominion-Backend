@@ -1,11 +1,12 @@
-package de.hexfieldsstudio.hexfieldsdominion.config;
+package de.hexfieldsstudio.hexfieldsdominion.account.token;
 
+import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -29,30 +30,29 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+    public String generateToken(User user, int maxAge) {
+        return generateToken(new HashMap<>(), user, maxAge);
     }
 
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+    public String generateToken(Map<String, Object> extraClaims, User user, int maxAgeSeconds) {
         return Jwts.builder()
                 .claims(extraClaims)
-                .subject(userDetails.getUsername())
+                .subject(user.getEmail())
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15))
+                .expiration(new Date(System.currentTimeMillis() + (maxAgeSeconds * 1000L)))
                 .signWith(getSecretKey())
                 .compact();
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public boolean isTokenValid(String token) {
+        try {
+            return extractExpiration(token).after(new Date());
+        } catch (ExpiredJwtException e) {
+            return false;
+        }
     }
 
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
+    private Date extractExpiration(String token) throws ExpiredJwtException {
         return extractClaim(token, Claims::getExpiration);
     }
 
