@@ -1,17 +1,16 @@
 package de.hexfieldsstudio.hexfieldsdominion.account;
 
+import jakarta.servlet.http.Cookie;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
-public class RegisterRequest {
+public class AuthenticationResult {
 
-    private String email;
-    private String password;
+    private AuthenticationResponse authenticationResponse;
+    private Cookie refreshTokenCookie;
 
 }
