@@ -45,7 +45,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        RequestMatcher routesNoAuthCheck = new RegexRequestMatcher("/auth/(guest|register|login|logout)", null);
+        RequestMatcher routesNoAuthCheck = new RegexRequestMatcher("/|/auth/(guest|register|login|logout)", null);
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
