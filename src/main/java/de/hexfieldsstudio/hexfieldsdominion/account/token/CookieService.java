@@ -19,7 +19,7 @@ public class CookieService {
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
-        cookie.setAttribute("sameSite", "Strict");
+        cookie.setAttribute("sameSite", "Lax");
         cookie.setMaxAge(REFRESH_TOKEN_MAX_AGE);
         return cookie;
     }
