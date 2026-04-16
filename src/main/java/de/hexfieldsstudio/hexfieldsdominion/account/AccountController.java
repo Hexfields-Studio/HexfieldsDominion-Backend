@@ -20,35 +20,39 @@ public class AccountController {
     public ResponseEntity<AuthenticationResponse> guest(HttpServletResponse response) {
         AuthenticationResult result = authenticationService.guest();
 
-        response.addCookie(result.getRefreshTokenCookie());
+        response.addCookie(result.refreshTokenCookie());
 
-        return ResponseEntity.ok(result.getAuthenticationResponse());
+        return ResponseEntity.ok(result.authenticationResponse());
     }
 
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterDTO request, HttpServletResponse response) {
         AuthenticationResult result = authenticationService.register(request);
 
-        response.addCookie(result.getRefreshTokenCookie());
+        if (result.authenticationResponse() instanceof ErrorAuthenticationResponse) {
+            return ResponseEntity.badRequest().body(result.authenticationResponse());
+        }
 
-        return ResponseEntity.ok(result.getAuthenticationResponse());
+        response.addCookie(result.refreshTokenCookie());
+
+        return ResponseEntity.ok(result.authenticationResponse());
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginDTO request, HttpServletResponse response) {
         AuthenticationResult result = authenticationService.login(request);
 
-        response.addCookie(result.getRefreshTokenCookie());
+        response.addCookie(result.refreshTokenCookie());
 
-        return ResponseEntity.ok(result.getAuthenticationResponse());
+        return ResponseEntity.ok(result.authenticationResponse());
     }
 
     @GetMapping("/refresh")
     public ResponseEntity<AuthenticationResponse> refresh(@CookieValue(REFRESH_TOKEN_NAME) String oldRefreshToken, HttpServletResponse response) {
         return authenticationService.refresh(oldRefreshToken).map(result -> {
-            response.addCookie(result.getRefreshTokenCookie());
+            response.addCookie(result.refreshTokenCookie());
 
-            return ResponseEntity.ok(result.getAuthenticationResponse());
+            return ResponseEntity.ok(result.authenticationResponse());
 
         }).orElse(ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).build());
     }
@@ -57,7 +61,7 @@ public class AccountController {
     public void logout(@CookieValue(name = REFRESH_TOKEN_NAME, required = false) String oldRefreshToken, HttpServletResponse response) {
         AuthenticationResult result = authenticationService.logout(oldRefreshToken);
 
-        response.addCookie(result.getRefreshTokenCookie());
+        response.addCookie(result.refreshTokenCookie());
 
         response.setStatus(HttpServletResponse.SC_OK);
     }
