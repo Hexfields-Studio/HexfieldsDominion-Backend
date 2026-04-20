@@ -1,12 +1,7 @@
 package de.hexfieldsstudio.hexfieldsdominion.account;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+public interface AuthenticationResponse {}
 
-@Data
-@AllArgsConstructor
-public class AuthenticationResponse {
+record SuccessAuthenticationResponse (String accessToken) implements AuthenticationResponse {}
 
-    private String accessToken;
-
-}
+record ErrorAuthenticationResponse (String errorMessage) implements AuthenticationResponse {}

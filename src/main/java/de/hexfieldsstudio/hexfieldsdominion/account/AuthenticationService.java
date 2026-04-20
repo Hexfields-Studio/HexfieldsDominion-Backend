@@ -15,12 +15,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import static de.hexfieldsstudio.hexfieldsdominion.account.token.AuthTokens.ACCESS_TOKEN_MAX_AGE;
 
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
+
+    private static final Pattern VALID_USERNAME_PW_PATTERN = Pattern.compile("^([a-zA-Z0-9*._\\-+=()!%@])+$");
 
     private final AllUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -36,7 +39,7 @@ public class AuthenticationService {
         userRepository.save(user);
 
         String accessToken = jwtService.generateToken(user, ACCESS_TOKEN_MAX_AGE);
-        AuthenticationResponse response = new AuthenticationResponse(accessToken);
+        AuthenticationResponse response = new SuccessAuthenticationResponse(accessToken);
 
         Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(user);
         validRefreshTokensService.store(user, refreshTokenCookie.getValue());
@@ -48,6 +51,12 @@ public class AuthenticationService {
     }
 
     public AuthenticationResult register(RegisterDTO request) {
+        if (!VALID_USERNAME_PW_PATTERN.matcher(request.getEmail()).matches() || !VALID_USERNAME_PW_PATTERN.matcher(request.getPassword()).matches()) {
+            return AuthenticationResult.builder()
+                    .authenticationResponse(new ErrorAuthenticationResponse("Invalid credentials"))
+                    .build();
+        }
+
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -56,7 +65,7 @@ public class AuthenticationService {
         userRepository.save(user);
 
         String accessToken = jwtService.generateToken(user, ACCESS_TOKEN_MAX_AGE);
-        AuthenticationResponse response = new AuthenticationResponse(accessToken);
+        AuthenticationResponse response = new SuccessAuthenticationResponse(accessToken);
 
         Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(user);
         validRefreshTokensService.store(user, refreshTokenCookie.getValue());
@@ -72,7 +81,7 @@ public class AuthenticationService {
                 .orElseThrow();
 
         String accessToken = jwtService.generateToken(user, ACCESS_TOKEN_MAX_AGE);
-        AuthenticationResponse response = new AuthenticationResponse(accessToken);
+        AuthenticationResponse response = new SuccessAuthenticationResponse(accessToken);
 
         Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(user);
         validRefreshTokensService.store(user, refreshTokenCookie.getValue());
@@ -93,7 +102,7 @@ public class AuthenticationService {
                 .orElseThrow();
 
         String accessToken = jwtService.generateToken(user, ACCESS_TOKEN_MAX_AGE);
-        AuthenticationResponse response = new AuthenticationResponse(accessToken);
+        AuthenticationResponse response = new SuccessAuthenticationResponse(accessToken);
 
         Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(user);
         // no need to invalidate the old token as this replaces it with the new one
