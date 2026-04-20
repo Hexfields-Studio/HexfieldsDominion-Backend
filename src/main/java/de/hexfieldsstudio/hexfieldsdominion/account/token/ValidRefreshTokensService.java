@@ -12,11 +12,11 @@ public class ValidRefreshTokensService {
     private final Map<String, String> usersValidTokens = new HashMap<>();
 
     public void store(User user, String refreshToken) {
-        usersValidTokens.put(user.getEmail(), refreshToken);
+        usersValidTokens.put(user.getUsername(), refreshToken);
     }
 
     public void invalidate(User user) {
-        usersValidTokens.remove(user.getEmail());
+        usersValidTokens.remove(user.getUsername());
     }
 
     public boolean isValid(String refreshToken) {
