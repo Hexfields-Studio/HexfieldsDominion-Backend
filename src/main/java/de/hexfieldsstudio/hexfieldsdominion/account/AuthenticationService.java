@@ -32,8 +32,13 @@ public class AuthenticationService {
     private final ValidRefreshTokensService validRefreshTokensService;
 
     public AuthenticationResult guest() {
+        String guestUsername;
+        do {
+            guestUsername = "Guest_%s".formatted(UUID.randomUUID().toString());
+        } while (userRepository.findByUsername((guestUsername)).isPresent());
+
         User user = User.builder()
-                .email(UUID.randomUUID().toString())
+                .username(guestUsername)
                 .role(Role.GUEST)
                 .build();
         userRepository.save(user);
@@ -51,14 +56,14 @@ public class AuthenticationService {
     }
 
     public AuthenticationResult register(RegisterDTO request) {
-        if (!VALID_USERNAME_PW_PATTERN.matcher(request.getEmail()).matches() || !VALID_USERNAME_PW_PATTERN.matcher(request.getPassword()).matches()) {
+        if (!VALID_USERNAME_PW_PATTERN.matcher(request.getUsername()).matches() || !VALID_USERNAME_PW_PATTERN.matcher(request.getPassword()).matches()) {
             return AuthenticationResult.builder()
                     .authenticationResponse(new ErrorAuthenticationResponse("Invalid credentials"))
                     .build();
         }
 
         User user = User.builder()
-                .email(request.getEmail())
+                .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.PLAYER)
                 .build();
@@ -77,7 +82,7 @@ public class AuthenticationService {
     }
 
     public AuthenticationResult login(LoginDTO request) {
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow();
 
         String accessToken = jwtService.generateToken(user, ACCESS_TOKEN_MAX_AGE);
@@ -98,7 +103,7 @@ public class AuthenticationService {
         }
 
         String username = jwtService.extractUsername(refreshToken);
-        User user = userRepository.findByEmail(username)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow();
 
         String accessToken = jwtService.generateToken(user, ACCESS_TOKEN_MAX_AGE);
@@ -117,7 +122,7 @@ public class AuthenticationService {
     public AuthenticationResult logout(String oldRefreshToken) {
         if (oldRefreshToken != null) {
             String username = jwtService.extractUsername(oldRefreshToken);
-            User user = userRepository.findByEmail(username)
+            User user = userRepository.findByUsername(username)
                     .orElseThrow();
 
             validRefreshTokensService.invalidate(user);

@@ -9,6 +9,6 @@ public interface UserRepository {
     @NonNull
     User save(@NonNull  User user);
 
-    Optional<User> findByEmail(String email);
+    Optional<User> findByUsername(String username);
 
 }

@@ -23,10 +23,12 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(name = "email", nullable = false, length = 255, unique = true)
-    private String email;
+    @Column(name = "username", nullable = false, length = 255, unique = true)
+    private String username;
     @Column(name = "password", nullable = true, length = 255)
     private String password;
+    @Column(name = "email", nullable = true, length = 255, unique = false)
+    private String email;
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 255)
     private Role role;
@@ -38,7 +40,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return username;
     }
 
 }

@@ -13,19 +13,19 @@ public class GuestUserRepository implements UserRepository {
     @Override
     @NonNull
     public User save(@NonNull User user) {
-        if (guestUsers.containsKey(user.getEmail())) {
-            throw new RuntimeException("duplicate user " + user.getEmail());
+        if (guestUsers.containsKey(user.getUsername())) {
+            throw new RuntimeException("duplicate user " + user.getUsername());
         }
-        guestUsers.put(user.getEmail(), user);
+        guestUsers.put(user.getUsername(), user);
         return user;
     }
 
     @Override
-    public Optional<User> findByEmail(String email) {
-        if (!guestUsers.containsKey(email)) {
+    public Optional<User> findByUsername(String username) {
+        if (!guestUsers.containsKey(username)) {
             return Optional.empty();
         }
-        return Optional.of(guestUsers.get(email));
+        return Optional.of(guestUsers.get(username));
     }
 
 }
