@@ -29,8 +29,8 @@ public class AccountController {
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterDTO request, HttpServletResponse response) {
         AuthenticationResult result = authenticationService.register(request);
 
-        if (result.authenticationResponse() instanceof ErrorAuthenticationResponse) {
-            return ResponseEntity.badRequest().body(result.authenticationResponse());
+        if (result.authenticationResponse() instanceof ErrorAuthenticationResponse errorResponse) {
+            return ResponseEntity.status(errorResponse.statusCode()).body(result.authenticationResponse());
         }
 
         response.addCookie(result.refreshTokenCookie());
