@@ -30,7 +30,7 @@ public class AccountController {
         AuthenticationResult result = authenticationService.register(request);
 
         if (result.authenticationResponse() instanceof ErrorAuthenticationResponse errorResponse) {
-            return ResponseEntity.status(errorResponse.statusCode()).body(result.authenticationResponse());
+            return ResponseEntity.status(errorResponse.statusCode()).body(errorResponse);
         }
 
         response.addCookie(result.refreshTokenCookie());
