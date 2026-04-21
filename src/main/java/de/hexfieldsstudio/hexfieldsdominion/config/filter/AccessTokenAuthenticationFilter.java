@@ -43,7 +43,7 @@ public class AccessTokenAuthenticationFilter extends OncePerRequestFilter {
         if (jwtService.isTokenValid(accessToken)) {
             String username = jwtService.extractUsername(accessToken);
 
-            userRepository.findByEmail(username).ifPresent(user -> {
+            userRepository.findByUsername(username).ifPresent(user -> {
                 Authentication authToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             });

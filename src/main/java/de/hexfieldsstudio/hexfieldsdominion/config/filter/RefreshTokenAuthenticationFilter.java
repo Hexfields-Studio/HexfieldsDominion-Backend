@@ -63,7 +63,7 @@ public class RefreshTokenAuthenticationFilter extends OncePerRequestFilter {
         if (jwtService.isTokenValid(refreshToken)) {
             String username = jwtService.extractUsername(refreshToken);
 
-            userRepository.findByEmail(username).ifPresent(user -> {
+            userRepository.findByUsername(username).ifPresent(user -> {
                 Authentication authToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             });

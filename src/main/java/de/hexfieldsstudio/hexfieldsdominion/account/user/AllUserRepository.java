@@ -19,12 +19,12 @@ public class AllUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByEmail(String email) {
-        Optional<User> optionalGuest = guestUserRepository.findByEmail(email);
+    public Optional<User> findByUsername(String username) {
+        Optional<User> optionalGuest = guestUserRepository.findByUsername(username);
         if (optionalGuest.isPresent()) {
             return optionalGuest;
         }
-        return accountUserRepository.findByEmail(email);
+        return accountUserRepository.findByUsername(username);
     }
 
     private UserRepository getRepositoryByUser(User user) {

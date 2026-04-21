@@ -37,7 +37,7 @@ public class JwtService {
     public String generateToken(Map<String, Object> extraClaims, User user, int maxAgeSeconds) {
         return Jwts.builder()
                 .claims(extraClaims)
-                .subject(user.getEmail())
+                .subject(user.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + (maxAgeSeconds * 1000L)))
                 .signWith(getSecretKey())
