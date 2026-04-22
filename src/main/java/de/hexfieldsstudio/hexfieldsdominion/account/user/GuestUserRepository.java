@@ -13,9 +13,6 @@ public class GuestUserRepository implements UserRepository {
     @Override
     @NonNull
     public User save(@NonNull User user) {
-        if (guestUsers.containsKey(user.getUsername())) {
-            throw new RuntimeException("duplicate user " + user.getUsername());
-        }
         guestUsers.put(user.getUsername(), user);
         return user;
     }

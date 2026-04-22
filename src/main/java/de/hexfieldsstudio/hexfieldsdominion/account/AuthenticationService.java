@@ -2,13 +2,14 @@ package de.hexfieldsstudio.hexfieldsdominion.account;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.dto.LoginDTO;
 import de.hexfieldsstudio.hexfieldsdominion.account.dto.RegisterDTO;
-import de.hexfieldsstudio.hexfieldsdominion.account.token.ValidRefreshTokensService;
+import de.hexfieldsstudio.hexfieldsdominion.account.token.RefreshTokensService;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.AllUserRepository;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.Role;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.CookieService;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.JwtService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,12 +30,13 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final CookieService cookieService;
-    private final ValidRefreshTokensService validRefreshTokensService;
+    private final RefreshTokensService refreshTokensService;
 
     public AuthenticationResult guest() {
         String guestUsername;
         do {
             guestUsername = "Guest_%s".formatted(UUID.randomUUID().toString());
+            // make sure the username is unique
         } while (userRepository.findByUsername((guestUsername)).isPresent());
 
         User user = User.builder()
@@ -43,16 +45,7 @@ public class AuthenticationService {
                 .build();
         userRepository.save(user);
 
-        String accessToken = jwtService.generateToken(user, ACCESS_TOKEN_MAX_AGE);
-        AuthenticationResponse response = new SuccessAuthenticationResponse(accessToken);
-
-        Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(user);
-        validRefreshTokensService.store(user, refreshTokenCookie.getValue());
-
-        return AuthenticationResult.builder()
-                .authenticationResponse(response)
-                .refreshTokenCookie(refreshTokenCookie)
-                .build();
+        return this.createNewTokensAndGetResult(user);
     }
 
     public AuthenticationResult register(RegisterDTO request) {
@@ -64,41 +57,29 @@ public class AuthenticationService {
 
         User user = User.builder()
                 .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
+                .password(request.getPassword(), passwordEncoder)
                 .role(Role.PLAYER)
                 .build();
         userRepository.save(user);
 
-        String accessToken = jwtService.generateToken(user, ACCESS_TOKEN_MAX_AGE);
-        AuthenticationResponse response = new SuccessAuthenticationResponse(accessToken);
-
-        Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(user);
-        validRefreshTokensService.store(user, refreshTokenCookie.getValue());
-
-        return AuthenticationResult.builder()
-                .authenticationResponse(response)
-                .refreshTokenCookie(refreshTokenCookie)
-                .build();
+        return this.createNewTokensAndGetResult(user);
     }
 
     public AuthenticationResult login(LoginDTO request) {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow();
 
-        String accessToken = jwtService.generateToken(user, ACCESS_TOKEN_MAX_AGE);
-        AuthenticationResponse response = new SuccessAuthenticationResponse(accessToken);
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            return AuthenticationResult.builder()
+                    .authenticationResponse(new ErrorAuthenticationResponse("Invalid credentials", HttpServletResponse.SC_UNAUTHORIZED))
+                    .build();
+        }
 
-        Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(user);
-        validRefreshTokensService.store(user, refreshTokenCookie.getValue());
-
-        return AuthenticationResult.builder()
-                .authenticationResponse(response)
-                .refreshTokenCookie(refreshTokenCookie)
-                .build();
+        return this.createNewTokensAndGetResult(user);
     }
 
     public Optional<AuthenticationResult> refresh(String refreshToken) {
-        if (!jwtService.isTokenValid(refreshToken) || !validRefreshTokensService.isValid(refreshToken)) {
+        if (!jwtService.isTokenValid(refreshToken)) {
             return Optional.empty();
         }
 
@@ -106,17 +87,11 @@ public class AuthenticationService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow();
 
-        String accessToken = jwtService.generateToken(user, ACCESS_TOKEN_MAX_AGE);
-        AuthenticationResponse response = new SuccessAuthenticationResponse(accessToken);
+        if (!refreshTokensService.isValid(user, refreshToken)) {
+            return Optional.empty();
+        }
 
-        Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(user);
-        // no need to invalidate the old token as this replaces it with the new one
-        validRefreshTokensService.store(user, refreshTokenCookie.getValue());
-
-        return Optional.of(AuthenticationResult.builder()
-                .authenticationResponse(response)
-                .refreshTokenCookie(refreshTokenCookie)
-                .build());
+        return Optional.of(this.createNewTokensAndGetResult(user));
     }
 
     public AuthenticationResult logout(String oldRefreshToken) {
@@ -125,11 +100,24 @@ public class AuthenticationService {
             User user = userRepository.findByUsername(username)
                     .orElseThrow();
 
-            validRefreshTokensService.invalidate(user);
+            refreshTokensService.invalidate(user, userRepository);
         }
 
         return AuthenticationResult.builder()
                 .refreshTokenCookie(cookieService.createDeleteRefreshTokenCookie())
+                .build();
+    }
+
+    private AuthenticationResult createNewTokensAndGetResult(User user) {
+        String accessToken = jwtService.generateToken(user, ACCESS_TOKEN_MAX_AGE);
+        AuthenticationResponse response = new SuccessAuthenticationResponse(accessToken);
+
+        Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(user);
+        refreshTokensService.store(user, refreshTokenCookie, userRepository);
+
+        return AuthenticationResult.builder()
+                .authenticationResponse(response)
+                .refreshTokenCookie(refreshTokenCookie)
                 .build();
     }
 
