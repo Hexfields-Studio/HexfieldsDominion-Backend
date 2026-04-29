@@ -80,7 +80,6 @@ public class LobbyController {
 
         // Create Player from User
         Player player = new Player();
-        player.setId(user.getId());
         player.setUsername(user.getUsername());
         player.setAccount(user.getRole() == Role.PLAYER);
 

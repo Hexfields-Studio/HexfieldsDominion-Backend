@@ -13,7 +13,7 @@ public class Lobby {
 
     public void addPlayer(Player player){
         // Check if player already exists before adding
-        boolean exists = players.stream().anyMatch(p -> p.getId() == player.getId());
+        boolean exists = players.stream().anyMatch(p -> p.getUsername().equals(player.getUsername()));
         if (!exists) {
             players.add(player);
         }
