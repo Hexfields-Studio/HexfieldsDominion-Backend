@@ -30,16 +30,17 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(User user, int maxAge) {
-        return generateToken(new HashMap<>(), user, maxAge);
+    public String generateToken(User user, int maxAgeSeconds) {
+        return generateToken(new HashMap<>(), user, maxAgeSeconds);
     }
 
     public String generateToken(Map<String, Object> extraClaims, User user, int maxAgeSeconds) {
+        long currentTimeMillis = System.currentTimeMillis();
         return Jwts.builder()
                 .claims(extraClaims)
                 .subject(user.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + (maxAgeSeconds * 1000L)))
+                .issuedAt(new Date(currentTimeMillis))
+                .expiration(new Date(currentTimeMillis + (maxAgeSeconds * 1000L)))
                 .signWith(getSecretKey())
                 .compact();
     }

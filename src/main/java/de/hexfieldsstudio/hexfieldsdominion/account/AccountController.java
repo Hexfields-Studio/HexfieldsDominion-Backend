@@ -42,6 +42,10 @@ public class AccountController {
     public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginDTO request, HttpServletResponse response) {
         AuthenticationResult result = authenticationService.login(request);
 
+        if (result.authenticationResponse() instanceof ErrorAuthenticationResponse errorResponse) {
+            return ResponseEntity.status(errorResponse.statusCode()).body(errorResponse);
+        }
+
         response.addCookie(result.refreshTokenCookie());
 
         return ResponseEntity.ok(result.authenticationResponse());
