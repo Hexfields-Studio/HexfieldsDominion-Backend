@@ -36,7 +36,7 @@ public class CookieServiceTest {
 
         assertEquals(AuthTokens.REFRESH_TOKEN_NAME, cookie.getName());
         assertEquals(mockToken, cookie.getValue());
-        assertEquals("/k", cookie.getPath());
+        assertEquals("/", cookie.getPath());
         assertTrue(cookie.isHttpOnly());
         assertTrue(cookie.getSecure());
         assertEquals("None", cookie.getAttribute("sameSite"));
