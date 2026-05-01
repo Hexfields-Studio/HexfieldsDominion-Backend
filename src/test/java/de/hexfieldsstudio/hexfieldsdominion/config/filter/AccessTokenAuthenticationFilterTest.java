@@ -43,6 +43,4 @@ public class AccessTokenAuthenticationFilterTest {
         assertFalse(accessTokenAuthenticationFilter.shouldNotFilter(request));
     }
 
-    // doFilterInternal probably doesn't make sense as unit test
-
 }

@@ -3,6 +3,7 @@ package de.hexfieldsstudio.hexfieldsdominion.account.token;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -46,9 +47,13 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token) {
+        if (token == null || token.isEmpty()) {
+            return false;
+        }
+
         try {
             return extractExpiration(token).after(new Date());
-        } catch (ExpiredJwtException e) {
+        } catch (JwtException e) {
             return false;
         }
     }

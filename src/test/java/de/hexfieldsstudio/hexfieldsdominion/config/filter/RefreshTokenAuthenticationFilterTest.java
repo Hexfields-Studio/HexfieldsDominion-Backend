@@ -43,6 +43,4 @@ public class RefreshTokenAuthenticationFilterTest {
         assertFalse(refreshTokenAuthenticationFilter.shouldNotFilter(request));
     }
 
-    // doFilterInternal probably doesn't make sense as unit test
-
 }

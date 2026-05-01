@@ -31,4 +31,9 @@ public class AllUserRepository implements UserRepository {
         return (user.getRole() == Role.GUEST) ? guestUserRepository : accountUserRepository;
     }
 
+    @Override
+    public void deleteAll() {
+        guestUserRepository.deleteAll();
+        accountUserRepository.deleteAll();
+    }
 }

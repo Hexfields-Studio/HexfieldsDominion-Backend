@@ -6,6 +6,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -77,20 +80,23 @@ public class JwtServiceTest {
         assertEquals(extraClaims.get("claim2"), jwtService.extractClaim(token, c -> c.get("claim2")));
     }
 
-    @Test
-    public void testIsTokenValid() throws InterruptedException {
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"", "xyz"})
+    public void testIsTokenValid(String tokenInvalidNoJwt) throws InterruptedException {
         User user = User.builder()
                 .username("testuser")
                 .build();
 
         String tokenValid = jwtService.generateToken(user, 10);
-        String tokenInvalid = jwtService.generateToken(user, 1);
+        String tokenInvalidExpired = jwtService.generateToken(user, 1);
 
-        // wait until tokenInvalid is invalid
+        // wait until tokenInvalidExpired is invalid
         Thread.sleep(1001);
 
         assertTrue(jwtService.isTokenValid(tokenValid));
-        assertFalse(jwtService.isTokenValid(tokenInvalid));
+        assertFalse(jwtService.isTokenValid(tokenInvalidExpired));
+        assertFalse(jwtService.isTokenValid(tokenInvalidNoJwt));
     }
 
 }

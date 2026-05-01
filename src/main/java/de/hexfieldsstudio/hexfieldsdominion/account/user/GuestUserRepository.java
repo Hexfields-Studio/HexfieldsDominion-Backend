@@ -25,4 +25,8 @@ public class GuestUserRepository implements UserRepository {
         return Optional.of(guestUsers.get(username));
     }
 
+    @Override
+    public void deleteAll() {
+        guestUsers.clear();
+    }
 }
