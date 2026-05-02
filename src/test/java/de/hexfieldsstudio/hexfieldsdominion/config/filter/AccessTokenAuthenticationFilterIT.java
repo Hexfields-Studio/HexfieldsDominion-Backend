@@ -84,7 +84,7 @@ public class AccessTokenAuthenticationFilterIT {
 
     @Test
     public void testFilterFailAlreadyAuthenticated() throws ServletException, IOException {
-        Authentication authentication = new UsernamePasswordAuthenticationToken("principal", "crdentials");
+        Authentication authentication = new UsernamePasswordAuthenticationToken("principal", "credentials");
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         User user = User.builder()

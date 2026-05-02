@@ -121,7 +121,7 @@ public class AccountControllerTest {
 
         assertEquals(HttpServletResponse.SC_OK, responseEntity.getStatusCode().value());
         assertEquals(authenticationResult.authenticationResponse(), responseEntity.getBody());
-        // we can't test if the responseEntity or response contains the cookie
+        // we can't test if the responseEntity or response contains the cookie (no getter)
         verify(response).addCookie(authenticationResult.refreshTokenCookie());
     }
 

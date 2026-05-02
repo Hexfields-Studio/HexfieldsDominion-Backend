@@ -76,7 +76,7 @@ public class AuthenticationServiceTest {
             "validName,inv>lidPw",
             "inv<lidName,inv>lidPw"
     })
-    public void testRegisterFail(String username, String password) {
+    public void testRegisterFailInvalidCredentials(String username, String password) {
         RegisterDTO registerDTO = new RegisterDTO(username, password);
 
         AuthenticationResult authenticationResult = authenticationService.register(registerDTO);
