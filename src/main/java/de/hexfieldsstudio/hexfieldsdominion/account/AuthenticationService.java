@@ -49,15 +49,15 @@ public class AuthenticationService {
     }
 
     public AuthenticationResult register(RegisterDTO request) {
-        if (!VALID_USERNAME_PW_PATTERN.matcher(request.getUsername()).matches() || !VALID_USERNAME_PW_PATTERN.matcher(request.getPassword()).matches()) {
+        if (!VALID_USERNAME_PW_PATTERN.matcher(request.username()).matches() || !VALID_USERNAME_PW_PATTERN.matcher(request.password()).matches()) {
             return AuthenticationResult.builder()
                     .authenticationResponse(new ErrorAuthenticationResponse("Invalid credentials"))
                     .build();
         }
 
         User user = User.builder()
-                .username(request.getUsername())
-                .password(request.getPassword(), passwordEncoder)
+                .username(request.username())
+                .password(request.password(), passwordEncoder)
                 .role(Role.PLAYER)
                 .build();
         userRepository.save(user);
@@ -66,10 +66,10 @@ public class AuthenticationService {
     }
 
     public AuthenticationResult login(LoginDTO request) {
-        User user = userRepository.findByUsername(request.getUsername())
+        User user = userRepository.findByUsername(request.username())
                 .orElseThrow();
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             return AuthenticationResult.builder()
                     .authenticationResponse(new ErrorAuthenticationResponse("Invalid credentials", HttpServletResponse.SC_UNAUTHORIZED))
                     .build();
