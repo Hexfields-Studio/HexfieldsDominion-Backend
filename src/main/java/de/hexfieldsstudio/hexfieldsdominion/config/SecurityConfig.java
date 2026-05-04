@@ -2,6 +2,7 @@ package de.hexfieldsstudio.hexfieldsdominion.config;
 
 import de.hexfieldsstudio.hexfieldsdominion.config.filter.AccessTokenAuthenticationFilter;
 import de.hexfieldsstudio.hexfieldsdominion.config.filter.RefreshTokenAuthenticationFilter;
+import de.hexfieldsstudio.hexfieldsdominion.config.filter.SseTokenAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +31,7 @@ public class SecurityConfig {
 
     private final AccessTokenAuthenticationFilter accessTokenAuthenticationFilter;
     private final RefreshTokenAuthenticationFilter refreshTokenAuthenticationFilter;
+    private final SseTokenAuthenticationFilter sseTokenAuthenticationFilter;
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
@@ -52,13 +54,13 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(customizer -> customizer.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        /*.requestMatchers(routesNoAuthCheck).permitAll()
-                        .anyRequest().authenticated()*/
-                        .anyRequest().permitAll()
+                        .requestMatchers(routesNoAuthCheck).permitAll()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(accessTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(refreshTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(refreshTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(sseTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

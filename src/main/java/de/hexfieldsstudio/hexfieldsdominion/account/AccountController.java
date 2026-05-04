@@ -66,4 +66,9 @@ public class AccountController {
         response.setStatus(HttpServletResponse.SC_OK);
     }
 
+    @GetMapping("/ssetoken")
+    public ResponseEntity<Long> sseToken(@RequestHeader(name = "Authorization") String authHeader) {
+        return ResponseEntity.ok((System.currentTimeMillis() % 2) + 2);
+    }
+
 }
