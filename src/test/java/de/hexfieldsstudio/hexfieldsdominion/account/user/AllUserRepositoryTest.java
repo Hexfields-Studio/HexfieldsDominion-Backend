@@ -84,4 +84,15 @@ public class AllUserRepositoryTest {
         assertFalse(allUserRepository.findByUsername("someUser").isPresent());
     }
 
+    @Test
+    public void testDeleteAll() {
+        allUserRepository.save(guestUser);
+        allUserRepository.save(accountUser);
+
+        allUserRepository.deleteAll();
+
+        verify(guestUserRepository, times(1)).deleteAll();
+        verify(accountUserRepository, times(1)).deleteAll();
+    }
+
 }

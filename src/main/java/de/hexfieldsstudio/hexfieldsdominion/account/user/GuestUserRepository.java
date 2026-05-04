@@ -8,7 +8,7 @@ import java.util.*;
 @Repository
 public class GuestUserRepository implements UserRepository {
 
-    Map<String, User> guestUsers = new HashMap<>();
+    private final Map<String, User> guestUsers = new HashMap<>();
 
     @Override
     @NonNull
