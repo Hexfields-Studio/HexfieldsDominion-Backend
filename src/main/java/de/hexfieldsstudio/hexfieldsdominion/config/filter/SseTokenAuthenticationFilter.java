@@ -23,10 +23,14 @@ public class SseTokenAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final AllUserRepository userRepository;
 
+    public static boolean doesFilter(String path) {
+        return path.matches("/lobbies/[a-zA-Z0-9]+/events");
+    }
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return !(path.matches("/lobbies/[a-zA-Z0-9]+/events"));
+        return !doesFilter(path);
     }
 
     @Override
