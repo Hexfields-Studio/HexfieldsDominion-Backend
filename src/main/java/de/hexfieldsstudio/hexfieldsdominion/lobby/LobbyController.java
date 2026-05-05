@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.token.JwtService;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.AllUserRepository;
@@ -93,7 +96,13 @@ public class LobbyController {
 
     @GetMapping("/{lobbyCode}/events")
     public SseEmitter lobbyEvents(@PathVariable String lobbyCode) {
-        return lobbyManager.subscribeToLobby(lobbyCode);
+        // Get authenticated user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof User)) {
+            throw new RuntimeException("Unauthorized");
+        }
+        User user = (User) authentication.getPrincipal();
+        return lobbyManager.subscribeToLobby(lobbyCode, user.getUsername());
     }
 
 }

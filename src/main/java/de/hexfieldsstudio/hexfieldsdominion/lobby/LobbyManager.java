@@ -5,7 +5,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -16,9 +19,12 @@ import de.hexfieldsstudio.hexfieldsdominion.game.player.Player;
 @Component
 public class LobbyManager{
 
+    private final static int HEARTBEAT_INTERVAL_SECONDS = 5;
+
     private final HashMap<String, Lobby> occupiedLobbies;
     private final List<Lobby> freeLobbies;
-    private final Map<String, CopyOnWriteArrayList<SseEmitter>> lobbyEmitters = new HashMap<>();
+    private final Map<String, Map<String, SseEmitter>> lobbyEmitters = new ConcurrentHashMap<>();
+    private final ScheduledExecutorService heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
 
     public LobbyManager(AppConfig config){
         int initialCapacity = config.getInitialCapacity();
@@ -27,6 +33,7 @@ public class LobbyManager{
         for (int i = 0; i < initialCapacity; i++){
             freeLobbies.add(new Lobby());
         }
+        heartbeatExecutor.scheduleAtFixedRate(this::sendHeartbeatEvents, HEARTBEAT_INTERVAL_SECONDS, HEARTBEAT_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     public String createLobby(String[] configs) throws Exception {
@@ -51,13 +58,13 @@ public class LobbyManager{
         }else return false;
     }
 
-    public SseEmitter subscribeToLobby(String lobbyCode) {
+    public SseEmitter subscribeToLobby(String lobbyCode, String username) {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        lobbyEmitters.computeIfAbsent(lobbyCode, k -> new CopyOnWriteArrayList<>()).add(emitter);
+        lobbyEmitters.computeIfAbsent(lobbyCode, k -> new ConcurrentHashMap<>()).put(username, emitter);
 
-        emitter.onCompletion(() -> unsubscribeFromLobby(lobbyCode, emitter));
-        emitter.onError((throwable) -> unsubscribeFromLobby(lobbyCode, emitter));
-        emitter.onTimeout(() -> unsubscribeFromLobby(lobbyCode, emitter));
+        emitter.onCompletion(() -> unsubscribeFromLobby(lobbyCode, username));
+        emitter.onError((throwable) -> unsubscribeFromLobby(lobbyCode, username));
+        emitter.onTimeout(() -> unsubscribeFromLobby(lobbyCode, username));
 
         // Send initial data
         Lobby lobby = occupiedLobbies.get(lobbyCode);
@@ -68,38 +75,87 @@ public class LobbyManager{
                     emitter.send(SseEmitter.event().name("lobbyUpdate").data(players));
                 }
             } catch (IOException e) {
-                unsubscribeFromLobby(lobbyCode, emitter);
+                unsubscribeFromLobby(lobbyCode, username);
             }
         }
 
         return emitter;
     }
 
-    private void unsubscribeFromLobby(String lobbyCode, SseEmitter emitter) {
-        CopyOnWriteArrayList<SseEmitter> emitters = lobbyEmitters.get(lobbyCode);
+    private void unsubscribeFromLobby(String lobbyCode, String username) {
+        Map<String, SseEmitter> emitters = lobbyEmitters.get(lobbyCode);
         if (emitters != null) {
-            emitters.remove(emitter);
+            emitters.remove(username);
             if (emitters.isEmpty()) {
                 lobbyEmitters.remove(lobbyCode);
             }
         }
+
+        // Remove player from lobby
+        Lobby lobby = occupiedLobbies.get(lobbyCode);
+        if (lobby != null) {
+            lobby.removePlayer(username);
+            notifyLobbyUpdate(lobbyCode, lobby.getPlayers());
+
+            // Check if lobby should be marked as free
+            checkLobbyCleanup(lobbyCode, lobby);
+        }
+    }
+
+    private void checkLobbyCleanup(String lobbyCode, Lobby lobby) {
+        /* UNUSED CODE 
+        List<Player> players = lobby.getPlayers();
+        if (players.isEmpty()) {
+            // No players left
+            if (lobby.isHasAccountPlayer()) {
+                // Only if Lobby had registered players, save to DB
+                saveLobbyToDatabase(lobbyCode, lobby);
+            }
+            // Set lobby to free
+            occupiedLobbies.remove(lobbyCode);
+            freeLobbies.add(lobby);
+        }
+    }
+
+    private void saveLobbyToDatabase(String lobbyCode, Lobby lobby) {
+        // TODO: Implement database save logic
+        // This is a stub for saving the lobby/match to database
+        // Get the match UUID
+        // Upload data to DB ( = persistance)
+        System.out.println("Stub: Saving lobby " + lobbyCode + " to database for resumption.");*/
     }
 
     private void notifyLobbyUpdate(String lobbyCode, List<Player> players) {
         if (players == null) {
             return;
         }
-        CopyOnWriteArrayList<SseEmitter> emitters = lobbyEmitters.get(lobbyCode);
+        Map<String, SseEmitter> emitters = lobbyEmitters.get(lobbyCode);
         if (emitters != null) {
-            List<SseEmitter> deadEmitters = new ArrayList<>();
-            for (SseEmitter emitter : emitters) {
+            List<String> deadUsers = new ArrayList<>();
+            for (Map.Entry<String, SseEmitter> entry : emitters.entrySet()) {
                 try {
-                    emitter.send(SseEmitter.event().name("lobbyUpdate").data(players));
+                    entry.getValue().send(SseEmitter.event().name("lobbyUpdate").data(players));
                 } catch (IOException e) {
-                    deadEmitters.add(emitter);
+                    deadUsers.add(entry.getKey());
                 }
             }
-            deadEmitters.forEach(emitter -> unsubscribeFromLobby(lobbyCode, emitter));
+            deadUsers.forEach(username -> unsubscribeFromLobby(lobbyCode, username));
+        }
+    }
+
+    private void sendHeartbeatEvents() {
+        for (Map.Entry<String, Map<String, SseEmitter>> lobbyEntry : lobbyEmitters.entrySet()) {
+            String lobbyCode = lobbyEntry.getKey();
+            Map<String, SseEmitter> emitters = lobbyEntry.getValue();
+            List<String> deadUsers = new ArrayList<>();
+            for (Map.Entry<String, SseEmitter> entry : emitters.entrySet()) {
+                try {
+                    entry.getValue().send(SseEmitter.event().name("heartbeat").data("keepalive"));
+                } catch (IOException e) {
+                    deadUsers.add(entry.getKey());
+                }
+            }
+            deadUsers.forEach(username -> unsubscribeFromLobby(lobbyCode, username));
         }
     }
 }
