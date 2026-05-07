@@ -8,14 +8,11 @@ import java.util.*;
 @Repository
 public class GuestUserRepository implements UserRepository {
 
-    Map<String, User> guestUsers = new HashMap<>();
+    private final Map<String, User> guestUsers = new HashMap<>();
 
     @Override
     @NonNull
     public User save(@NonNull User user) {
-        if (guestUsers.containsKey(user.getUsername())) {
-            throw new RuntimeException("duplicate user " + user.getUsername());
-        }
         guestUsers.put(user.getUsername(), user);
         return user;
     }
@@ -28,4 +25,8 @@ public class GuestUserRepository implements UserRepository {
         return Optional.of(guestUsers.get(username));
     }
 
+    @Override
+    public void deleteAll() {
+        guestUsers.clear();
+    }
 }

@@ -32,8 +32,8 @@ public class AccountController {
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterDTO request, HttpServletResponse response) {
         AuthenticationResult result = authenticationService.register(request);
 
-        if (result.authenticationResponse() instanceof ErrorAuthenticationResponse) {
-            return ResponseEntity.badRequest().body(result.authenticationResponse());
+        if (result.authenticationResponse() instanceof ErrorAuthenticationResponse errorResponse) {
+            return ResponseEntity.status(errorResponse.statusCode()).body(errorResponse);
         }
 
         response.addCookie(result.refreshTokenCookie());
@@ -44,6 +44,10 @@ public class AccountController {
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginDTO request, HttpServletResponse response) {
         AuthenticationResult result = authenticationService.login(request);
+
+        if (result.authenticationResponse() instanceof ErrorAuthenticationResponse errorResponse) {
+            return ResponseEntity.status(errorResponse.statusCode()).body(errorResponse);
+        }
 
         response.addCookie(result.refreshTokenCookie());
 

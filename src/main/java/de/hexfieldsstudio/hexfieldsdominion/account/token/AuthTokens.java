@@ -1,7 +1,7 @@
 package de.hexfieldsstudio.hexfieldsdominion.account.token;
 
 
-public class AuthTokens {
+public final class AuthTokens {
 
     public static final int ACCESS_TOKEN_MAX_AGE = 60 * 5; // 5 min
 

@@ -2,7 +2,7 @@ package de.hexfieldsstudio.hexfieldsdominion.config.filter;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.token.AuthTokens;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.JwtService;
-import de.hexfieldsstudio.hexfieldsdominion.account.token.ValidRefreshTokensService;
+import de.hexfieldsstudio.hexfieldsdominion.account.token.RefreshTokensService;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.AllUserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,7 +25,7 @@ import java.util.Optional;
 public class RefreshTokenAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final ValidRefreshTokensService validRefreshTokensService;
+    private final RefreshTokensService refreshTokensService;
     private final AllUserRepository userRepository;
 
     public static boolean doesFilter(String path) {
@@ -53,7 +53,7 @@ public class RefreshTokenAuthenticationFilter extends OncePerRequestFilter {
             refreshTokenCookie = Optional.of(cookie);
         }
 
-        if (refreshTokenCookie.isEmpty() || !validRefreshTokensService.isValid(refreshTokenCookie.get().getValue())) {
+        if (refreshTokenCookie.isEmpty()) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -64,6 +64,10 @@ public class RefreshTokenAuthenticationFilter extends OncePerRequestFilter {
             String username = jwtService.extractUsername(refreshToken);
 
             userRepository.findByUsername(username).ifPresent(user -> {
+                if (!refreshTokensService.isValid(user, refreshToken)) {
+                    return;
+                }
+
                 Authentication authToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             });
