@@ -8,4 +8,6 @@ public class AuthTokens {
     public static final String REFRESH_TOKEN_NAME = "refreshToken";
     public static final int REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 3; // 3 days
 
+    public static final int SSE_TOKEN_MAX_AGE = 10; // 10s
+
 }

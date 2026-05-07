@@ -1,7 +1,10 @@
 package de.hexfieldsstudio.hexfieldsdominion.config.filter;
 
 import java.io.IOException;
+import java.util.Optional;
 
+import de.hexfieldsstudio.hexfieldsdominion.account.token.SseTokenService;
+import lombok.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class SseTokenAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final SseTokenService sseTokenService;
     private final AllUserRepository userRepository;
 
     public static boolean doesFilter(String path) {
@@ -34,22 +38,28 @@ public class SseTokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         String queryString = request.getQueryString();
-        if (queryString == null || !queryString.contains("accessToken=")) {
+        if (queryString == null || !queryString.contains("sseToken=")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Extract accessToken from query string (e.g., ?accessToken=xyz)
-        String accessToken = extractAccessToken(queryString);
-        if (accessToken == null || !jwtService.isTokenValid(accessToken)) {
+        // Extract sseToken from query string (e.g., ?sseToken=xyz)
+        Optional<String> sseTokenOptional = extractSseToken(queryString);
+        if (sseTokenOptional.isEmpty()) {
             filterChain.doFilter(request, response);
             return;
         }
+        String sseToken = sseTokenOptional.get();
 
-        String username = jwtService.extractUsername(accessToken);
+        String username = jwtService.extractUsername(sseToken);
         userRepository.findByUsername(username).ifPresent(user -> {
+            Optional<String> storedValidToken = sseTokenService.getValidTokenAndInvalidate(user);
+            if (storedValidToken.isEmpty() || !sseToken.equals(storedValidToken.get())) {
+                return;
+            }
+
             Authentication authToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authToken);
         });
@@ -57,13 +67,13 @@ public class SseTokenAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private String extractAccessToken(String queryString) {
-        // Simple extraction: find accessToken=...& or end
-        int start = queryString.indexOf("accessToken=");
-        if (start == -1) return null;
-        start += "accessToken=".length();
+    private Optional<String> extractSseToken(String queryString) {
+        // Simple extraction: find sseToken=...& or end
+        int start = queryString.indexOf("sseToken=");
+        if (start == -1) return Optional.empty();
+        start += "sseToken=".length();
         int end = queryString.indexOf('&', start);
         if (end == -1) end = queryString.length();
-        return queryString.substring(start, end);
+        return Optional.of(queryString.substring(start, end));
     }
 }

@@ -19,12 +19,9 @@ import de.hexfieldsstudio.hexfieldsdominion.game.player.Player;
 @Component
 public class LobbyManager{
 
-    private final static int HEARTBEAT_INTERVAL_SECONDS = 5;
-
     private final HashMap<String, Lobby> occupiedLobbies;
     private final List<Lobby> freeLobbies;
     private final Map<String, Map<String, SseEmitter>> lobbyEmitters = new ConcurrentHashMap<>();
-    private final ScheduledExecutorService heartbeatExecutor = Executors.newSingleThreadScheduledExecutor();
 
     public LobbyManager(AppConfig config){
         int initialCapacity = config.getInitialCapacity();
@@ -33,7 +30,6 @@ public class LobbyManager{
         for (int i = 0; i < initialCapacity; i++){
             freeLobbies.add(new Lobby());
         }
-        heartbeatExecutor.scheduleAtFixedRate(this::sendHeartbeatEvents, HEARTBEAT_INTERVAL_SECONDS, HEARTBEAT_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
     public String createLobby(String[] configs) throws Exception {
@@ -43,7 +39,7 @@ public class LobbyManager{
             occupiedLobbies.put(lobbyCode, lobby);
             //TODO: Apply configs here to lobby.
             return lobbyCode;
-        }else {
+        } else {
             throw new Exception("Server Capacity has been reached. Could not create lobby.");
         }
     }
@@ -55,7 +51,7 @@ public class LobbyManager{
             res.put("players", lobby.getPlayers());
             notifyLobbyUpdate(lobbyCode, lobby.getPlayers());
             return true;
-        }else return false;
+        } else return false;
     }
 
     public SseEmitter subscribeToLobby(String lobbyCode, String username) {
@@ -143,19 +139,4 @@ public class LobbyManager{
         }
     }
 
-    private void sendHeartbeatEvents() {
-        for (Map.Entry<String, Map<String, SseEmitter>> lobbyEntry : lobbyEmitters.entrySet()) {
-            String lobbyCode = lobbyEntry.getKey();
-            Map<String, SseEmitter> emitters = lobbyEntry.getValue();
-            List<String> deadUsers = new ArrayList<>();
-            for (Map.Entry<String, SseEmitter> entry : emitters.entrySet()) {
-                try {
-                    entry.getValue().send(SseEmitter.event().name("heartbeat").data("keepalive"));
-                } catch (IOException e) {
-                    deadUsers.add(entry.getKey());
-                }
-            }
-            deadUsers.forEach(username -> unsubscribeFromLobby(lobbyCode, username));
-        }
-    }
 }
