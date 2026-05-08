@@ -54,6 +54,8 @@ public class SseTokenAuthenticationFilterIT {
                 .username("testuser")
                 .role(Role.GUEST)
                 .build();
+
+        allUserRepository.deleteAll();
     }
 
     @Test
