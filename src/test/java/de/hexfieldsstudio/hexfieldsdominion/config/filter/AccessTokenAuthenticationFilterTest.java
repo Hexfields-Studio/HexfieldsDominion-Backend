@@ -1,7 +1,6 @@
 package de.hexfieldsstudio.hexfieldsdominion.config.filter;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -22,10 +21,12 @@ public class AccessTokenAuthenticationFilterTest {
     @Mock
     private HttpServletRequest request;
 
-    @Test
-    public void testShouldNotFilter() {
-        String path = "/auth/refresh";
-
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "/auth/refresh",
+            "/lobbies/xyz/events"
+    })
+    public void testShouldNotFilter(String path) {
         when(request.getRequestURI()).thenReturn(path);
 
         assertTrue(accessTokenAuthenticationFilter.shouldNotFilter(request));

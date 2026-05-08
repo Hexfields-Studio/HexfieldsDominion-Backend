@@ -40,7 +40,7 @@ public class SseTokenAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         String queryString = request.getQueryString();
-        if (queryString == null || !queryString.contains("sseToken=")) {
+        if (queryString == null || !queryString.contains("sseToken=") || SecurityContextHolder.getContext().getAuthentication() != null) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -52,6 +52,11 @@ public class SseTokenAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         String sseToken = sseTokenOptional.get();
+
+        if (!jwtService.isTokenValid(sseToken)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String username = jwtService.extractUsername(sseToken);
         userRepository.findByUsername(username).ifPresent(user -> {

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static de.hexfieldsstudio.hexfieldsdominion.config.filter.FilterITUtils.createDummyFilterChain;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
@@ -198,7 +199,7 @@ public class RefreshTokenAuthenticationFilterIT {
     private void doFilterInternalWithCookies(Cookie[] cookies) throws ServletException, IOException {
         HttpServletRequest request = this.createRequestWithCookies(cookies);
         HttpServletResponse response = mock(HttpServletResponse.class);
-        FilterChain filterChain = this.createDummyFilterChain();
+        FilterChain filterChain = createDummyFilterChain();
 
         filter.doFilterInternal(request, response, filterChain);
     }
@@ -208,10 +209,6 @@ public class RefreshTokenAuthenticationFilterIT {
 
         when(request.getCookies()).thenReturn(cookies);
         return request;
-    }
-
-    private FilterChain createDummyFilterChain() {
-        return (request, response) -> {};
     }
 
     static class MissingCookieProvider implements ArgumentsProvider {

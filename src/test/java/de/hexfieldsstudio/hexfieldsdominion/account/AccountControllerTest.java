@@ -2,12 +2,15 @@ package de.hexfieldsstudio.hexfieldsdominion.account;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.dto.LoginDTO;
 import de.hexfieldsstudio.hexfieldsdominion.account.dto.RegisterDTO;
+import de.hexfieldsstudio.hexfieldsdominion.account.token.SseTokenService;
+import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
@@ -25,6 +28,9 @@ public class AccountControllerTest {
 
     @Mock
     private AuthenticationService authenticationService;
+
+    @Mock
+    private SseTokenService sseTokenService;
 
     @Mock
     private HttpServletResponse response;
@@ -109,6 +115,21 @@ public class AccountControllerTest {
 
         verify(response).addCookie(authenticationResult.refreshTokenCookie());
         verify(response).setStatus(HttpServletResponse.SC_OK);
+    }
+
+    @Test
+    public void testSseToken() {
+        String createdToken = "someToken";
+
+        try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
+            authUtils.when(AuthUtils::getAuthenticatedUser).thenReturn(new User());
+            when(sseTokenService.createToken(any())).thenReturn(createdToken);
+
+            ResponseEntity<String> response = accountController.sseToken();
+
+            assertEquals(HttpServletResponse.SC_OK, response.getStatusCode().value());
+            assertEquals(createdToken, response.getBody());
+        }
     }
 
     private void testAuthSuccess(Function<AuthenticationResult, ResponseEntity<AuthenticationResponse>> function) {
