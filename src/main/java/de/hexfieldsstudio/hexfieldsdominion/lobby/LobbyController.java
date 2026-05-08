@@ -42,7 +42,7 @@ public class LobbyController {
     }
 
     @GetMapping("/{lobbyCode}")
-    public ResponseEntity<Map<String, Object>> joinLobby(@PathVariable String lobbyCode, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<Map<String, Object>> joinLobby(@PathVariable String lobbyCode) {
         Map<String, Object> res = new HashMap<>();
 
         User user = AuthUtils.getAuthenticatedUser();
