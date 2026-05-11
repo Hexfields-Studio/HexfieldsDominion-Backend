@@ -10,9 +10,20 @@ import lombok.Getter;
 public class Lobby {
 
     List<Player> players = new ArrayList<>();
+    private boolean hasAccountPlayer = false;
 
     public void addPlayer(Player player){
-        //TODO: Add a safe check to make sure no player gets added twice
-        players.add(player);
+        // Check if player already exists before adding
+        boolean exists = players.stream().anyMatch(p -> p.getUsername().equals(player.getUsername()));
+        if (!exists) {
+            players.add(player);
+            if (player.isAccount()) {
+                hasAccountPlayer = true;
+            }
+        }
+    }
+
+    public void removePlayer(String username) {
+        players.removeIf(p -> p.getUsername().equals(username));
     }
 }

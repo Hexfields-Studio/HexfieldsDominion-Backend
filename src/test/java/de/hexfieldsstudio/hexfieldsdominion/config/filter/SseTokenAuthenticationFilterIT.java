@@ -1,6 +1,7 @@
 package de.hexfieldsstudio.hexfieldsdominion.config.filter;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.token.JwtService;
+import de.hexfieldsstudio.hexfieldsdominion.account.token.SseTokenService;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.*;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,16 +22,20 @@ import java.io.IOException;
 
 import static de.hexfieldsstudio.hexfieldsdominion.config.filter.FilterITUtils.createDummyFilterChain;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
-public class AccessTokenAuthenticationFilterIT {
+public class SseTokenAuthenticationFilterIT {
 
     @Autowired
-    private AccessTokenAuthenticationFilter filter;
+    private SseTokenAuthenticationFilter filter;
 
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private SseTokenService sseTokenService;
 
     @Autowired
     private AllUserRepository allUserRepository;
@@ -41,8 +46,15 @@ public class AccessTokenAuthenticationFilterIT {
     @Autowired
     private AccountUserRepository accountUserRepository;
 
+    private User user;
+
     @BeforeEach
     public void setupEach() {
+        user = User.builder()
+                .username("testuser")
+                .role(Role.GUEST)
+                .build();
+
         allUserRepository.deleteAll();
     }
 
@@ -50,14 +62,11 @@ public class AccessTokenAuthenticationFilterIT {
     public void testFilterSuccess() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
-        User user = User.builder()
-                .username("testuser")
-                .role(Role.GUEST)
-                .build();
-
         allUserRepository.save(user);
 
-        HttpServletRequest request = this.createRequestWithValidAuthHeader(user);
+        String createdToken = sseTokenService.createToken(user);
+
+        HttpServletRequest request = this.createRequestWithValidQuery(createdToken);
         HttpServletResponse response = mock(HttpServletResponse.class);
         FilterChain filterChain = createDummyFilterChain();
 
@@ -70,11 +79,11 @@ public class AccessTokenAuthenticationFilterIT {
 
     @ParameterizedTest
     @NullSource
-    @ValueSource(strings = {"", "xyz"})
-    public void testFilterFailAuthHeader(String authHeaderValue) throws ServletException, IOException {
+    @ValueSource(strings = {"", "xyz=x"})
+    public void testFilterFailMissingQueryParam(String query) throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
-        HttpServletRequest request = this.createRequestWithInvalidAuthHeader(authHeaderValue);
+        HttpServletRequest request = this.createRequestWithQuery(query);
         HttpServletResponse response = mock(HttpServletResponse.class);
         FilterChain filterChain = createDummyFilterChain();
 
@@ -85,15 +94,12 @@ public class AccessTokenAuthenticationFilterIT {
 
     @Test
     public void testFilterFailAlreadyAuthenticated() throws ServletException, IOException {
-        Authentication authentication = new UsernamePasswordAuthenticationToken("principal", "credentials");
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user, "cred");
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        User user = User.builder()
-                .username("testuser")
-                .role(Role.GUEST)
-                .build();
+        String createdToken = sseTokenService.createToken(user);
 
-        HttpServletRequest request = this.createRequestWithValidAuthHeader(user);
+        HttpServletRequest request = this.createRequestWithValidQuery(createdToken);
         HttpServletResponse response = mock(HttpServletResponse.class);
         FilterChain filterChain = createDummyFilterChain();
 
@@ -103,12 +109,19 @@ public class AccessTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailInvalidToken() throws ServletException, IOException {
+    public void testFilterFailProvidedTokenInvalid() throws ServletException, IOException, InterruptedException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
-        HttpServletRequest request = this.createRequestWithInvalidAuthHeader("Bearer invalidToken");
+        allUserRepository.save(user);
+
+        String token = jwtService.generateToken(user, 1);
+
+        HttpServletRequest request = this.createRequestWithValidQuery(token);
         HttpServletResponse response = mock(HttpServletResponse.class);
         FilterChain filterChain = createDummyFilterChain();
+
+        // wait for token to expire
+        Thread.sleep(1001);
 
         filter.doFilterInternal(request, response, filterChain);
 
@@ -119,12 +132,9 @@ public class AccessTokenAuthenticationFilterIT {
     public void testFilterFailUnknownUser() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
-        User user = User.builder()
-                .username("testuser")
-                .role(Role.GUEST)
-                .build();
+        String createdToken = sseTokenService.createToken(user);
 
-        HttpServletRequest request = this.createRequestWithValidAuthHeader(user);
+        HttpServletRequest request = this.createRequestWithValidQuery(createdToken);
         HttpServletResponse response = mock(HttpServletResponse.class);
         FilterChain filterChain = createDummyFilterChain();
 
@@ -133,18 +143,49 @@ public class AccessTokenAuthenticationFilterIT {
         assertNull(SecurityContextHolder.getContext().getAuthentication());
     }
 
-    private HttpServletRequest createRequestWithValidAuthHeader(User user) {
-        HttpServletRequest request = mock(HttpServletRequest.class);
+    @Test
+    public void testFilterFailNoValidTokenStoredForUser() throws ServletException, IOException {
+        SecurityContextHolder.getContext().setAuthentication(null);
 
-        String accessToken = jwtService.generateToken(user, 100);
+        allUserRepository.save(user);
 
-        when(request.getHeader("Authorization")).thenReturn("Bearer %s".formatted(accessToken));
-        return request;
+        String tokenNotStored = jwtService.generateToken(user, 100);
+
+        HttpServletRequest request = this.createRequestWithValidQuery(tokenNotStored);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        FilterChain filterChain = createDummyFilterChain();
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
     }
 
-    private HttpServletRequest createRequestWithInvalidAuthHeader(String value) {
+    @Test
+    public void testFilterFailProvidedTokenNotEqualsStored() throws ServletException, IOException {
+        SecurityContextHolder.getContext().setAuthentication(null);
+
+        allUserRepository.save(user);
+
+        sseTokenService.createToken(user);
+        String otherToken = jwtService.generateToken(user, 100);
+
+        HttpServletRequest request = this.createRequestWithValidQuery(otherToken);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        FilterChain filterChain = createDummyFilterChain();
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+    }
+
+    private HttpServletRequest createRequestWithValidQuery(String sseToken) {
+        return this.createRequestWithQuery("sseToken=%s".formatted(sseToken));
+    }
+
+    private HttpServletRequest createRequestWithQuery(String query) {
         HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getHeader("Authorization")).thenReturn(value);
+
+        when(request.getQueryString()).thenReturn(query);
         return request;
     }
 

@@ -26,7 +26,7 @@ public class AccessTokenAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return RefreshTokenAuthenticationFilter.doesFilter(path);
+        return RefreshTokenAuthenticationFilter.doesFilter(path) || SseTokenAuthenticationFilter.doesFilter(path);
     }
 
     @Override

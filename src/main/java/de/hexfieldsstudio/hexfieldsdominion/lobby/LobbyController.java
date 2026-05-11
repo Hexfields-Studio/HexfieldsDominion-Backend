@@ -1,26 +1,28 @@
 package de.hexfieldsstudio.hexfieldsdominion.lobby;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import de.hexfieldsstudio.hexfieldsdominion.lobby.dto.CreateLobbyDTO;
-
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
+import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import de.hexfieldsstudio.hexfieldsdominion.account.user.Role;
+import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
+import de.hexfieldsstudio.hexfieldsdominion.game.player.Player;
+import de.hexfieldsstudio.hexfieldsdominion.lobby.dto.CreateLobbyDTO;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequestMapping("/lobbies")
 @RestController
+@RequestMapping("/lobbies")
+@RequiredArgsConstructor
 public class LobbyController {
 
     private final LobbyManager lobbyManager;
-
-    @Autowired
-    public LobbyController(LobbyManager lobbyManager) {
-        this.lobbyManager = lobbyManager;
-    }
 
     @PatchMapping(produces = "application/json")
     public ResponseEntity<Map<String, String>> createLobby(@RequestBody(required = false) CreateLobbyDTO configs) {
@@ -43,12 +45,26 @@ public class LobbyController {
     public ResponseEntity<Map<String, Object>> joinLobby(@PathVariable String lobbyCode) {
         Map<String, Object> res = new HashMap<>();
 
-        if (lobbyManager.joinLobby(lobbyCode, res)){
+        User user = AuthUtils.getAuthenticatedUser();
+
+        // Create Player from User
+        Player player = new Player();
+        player.setUsername(user.getUsername());
+        player.setAccount(user.getRole() == Role.PLAYER);
+
+        if (lobbyManager.joinLobby(lobbyCode, player, res)){
             return ResponseEntity.ok(res);
-        }else{
+        } else {
             res.put("error", "Lobby with code " + lobbyCode + " not found.");
             return ResponseEntity.badRequest().body(res);
         }
+    }
+
+    @GetMapping("/{lobbyCode}/events")
+    public SseEmitter lobbyEvents(@PathVariable String lobbyCode) {
+        User user = AuthUtils.getAuthenticatedUser();
+
+        return lobbyManager.subscribeToLobby(lobbyCode, user.getUsername());
     }
 
 }
