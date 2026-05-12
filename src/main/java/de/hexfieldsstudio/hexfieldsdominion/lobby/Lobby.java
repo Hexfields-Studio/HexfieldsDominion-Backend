@@ -26,7 +26,6 @@ public class Lobby implements NoHeartbeatListener {
             Player existingPlayer = existingPlayerOptional.get();
             heartbeatHandler.resetTimer(existingPlayer.getId());
             // we can't reuse the connection for the same username
-            lobbyManager.unsubscribeFromLobby(lobbyCode, existingPlayer.getUsername());
             lobbyManager.subscribeToLobby(lobbyCode, existingPlayer.getUsername());
             return existingPlayer;
         }

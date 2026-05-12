@@ -49,6 +49,16 @@ public class LobbyController {
         return ResponseEntity.ok(new CreatedPlayerResponse(createdPlayer));
     }
 
+    @GetMapping("/{lobbyCode}/exists")
+    public ResponseEntity<Boolean> doesLobbyWithCodeExist(@PathVariable String lobbyCode) {
+        try {
+            lobbyManager.findOccupiedLobbyOrThrow(lobbyCode);
+            return ResponseEntity.ok(true);
+        } catch (LobbyNotFoundException e) {
+            return ResponseEntity.ok(false);
+        }
+    }
+
     @PostMapping("/{lobbyCode}/heartbeat")
     public void heartbeat(@PathVariable String lobbyCode, @RequestBody HeartbeatDTO dto) throws LobbyNotFoundException {
         Lobby lobby = lobbyManager.findOccupiedLobbyOrThrow(lobbyCode);
