@@ -110,7 +110,7 @@ public class LobbyManager implements NoHeartbeatListener {
     }
 
     private void checkLobbyCleanup(String lobbyCode, Lobby lobby) {
-        /* UNUSED CODE 
+        /* UNUSED CODE
         List<Player> players = lobby.getPlayers();
         if (players.isEmpty()) {
             // No players left
