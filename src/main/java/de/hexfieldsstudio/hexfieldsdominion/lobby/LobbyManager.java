@@ -45,7 +45,7 @@ public class LobbyManager implements NoHeartbeatListener {
     public Player joinLobby(String lobbyCode, User user) throws LobbyNotFoundException {
         Lobby lobby = this.findOccupiedLobbyOrThrow(lobbyCode);
         Player player = lobby.addPlayer(user, this);
-        notifyLobbyUpdate(lobbyCode, lobby.getPlayers());
+        notifyLobbyUpdate(lobby);
 
         lobby.getHeartbeatHandler().registerNoHeartbeat(player, this);
         return player;
@@ -82,7 +82,7 @@ public class LobbyManager implements NoHeartbeatListener {
         return emitter;
     }
 
-    public void unsubscribeFromLobby(String lobbyCode, String username) {
+    private void unsubscribeFromLobby(String lobbyCode, String username) {
         Map<String, SseEmitter> emitters = lobbyEmitters.get(lobbyCode);
         if (emitters != null) {
             emitters.remove(username);
@@ -97,7 +97,7 @@ public class LobbyManager implements NoHeartbeatListener {
         Lobby lobby = occupiedLobbies.get(lobbyCode);
         if (lobby != null) {
             lobby.removePlayer(username);
-            notifyLobbyUpdate(lobbyCode, lobby.getPlayers());
+            notifyLobbyUpdate(lobby);
 
             // Check if lobby should be marked as free
             checkLobbyCleanup(lobbyCode, lobby);
@@ -132,7 +132,10 @@ public class LobbyManager implements NoHeartbeatListener {
         System.out.println("Stub: Saving lobby " + lobbyCode + " to database for resumption.");*/
     }
 
-    protected void notifyLobbyUpdate(String lobbyCode, List<Player> players) {
+    private void notifyLobbyUpdate(Lobby lobby) {
+        String lobbyCode = lobby.getLobbyCode();
+        List<Player> players = lobby.getPlayers();
+
         if (players == null) {
             return;
         }
@@ -152,6 +155,6 @@ public class LobbyManager implements NoHeartbeatListener {
 
     @Override
     public void onNoHeartbeat(Lobby lobby, int playerId) {
-        notifyLobbyUpdate(lobby.getLobbyCode(), lobby.getPlayers());
+        notifyLobbyUpdate(lobby);
     }
 }
