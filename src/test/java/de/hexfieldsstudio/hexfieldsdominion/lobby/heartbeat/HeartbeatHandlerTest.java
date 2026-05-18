@@ -3,12 +3,13 @@ package de.hexfieldsstudio.hexfieldsdominion.lobby.heartbeat;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.Role;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.Player;
+import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.Field;
@@ -22,8 +23,12 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class HeartbeatHandlerTest {
 
-    @InjectMocks
     private HeartbeatHandler heartbeatHandler;
+
+    @Mock
+    private Lobby lobby;
+
+    private static final long HEARTBEAT_CHECK_INTERVAL_SECONDS = 10;
 
     private static Field executorsMapField;
     private static Field executorListenersField;
@@ -46,6 +51,8 @@ public class HeartbeatHandlerTest {
     @BeforeEach
     @SuppressWarnings("unchecked")
     public void setupEach() throws IllegalAccessException {
+        heartbeatHandler = new HeartbeatHandler(lobby, HEARTBEAT_CHECK_INTERVAL_SECONDS);
+
         User user = User.builder()
                 .username("testuser")
                 .role(Role.GUEST)
@@ -77,7 +84,7 @@ public class HeartbeatHandlerTest {
     }
 
     @Test
-    public void testRegisterNoHeartbeatMapDoesNotContainId() throws IllegalAccessException {
+    public void testRegisterNoHeartbeatMapDoesNotContainId() {
         NoHeartbeatListener listener = mock(NoHeartbeatListener.class);
 
         heartbeatHandler.registerNoHeartbeat(player, listener);
