@@ -25,7 +25,7 @@ public class LobbyManager implements NoHeartbeatListener {
         occupiedLobbies = new HashMap<>(initialCapacity);
         freeLobbies = new ArrayList<>();
         for (int i = 0; i < initialCapacity; i++){
-            freeLobbies.add(new Lobby());
+            freeLobbies.add(new Lobby(config));
         }
     }
 

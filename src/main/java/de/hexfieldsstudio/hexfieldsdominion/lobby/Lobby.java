@@ -3,6 +3,7 @@ package de.hexfieldsstudio.hexfieldsdominion.lobby;
 import java.util.*;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
+import de.hexfieldsstudio.hexfieldsdominion.config.AppConfig;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.Player;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.heartbeat.HeartbeatHandler;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.heartbeat.NoHeartbeatListener;
@@ -12,14 +13,18 @@ import lombok.Setter;
 @Getter
 public class Lobby implements NoHeartbeatListener {
 
-    private final HeartbeatHandler heartbeatHandler = new HeartbeatHandler(this);
+    private final HeartbeatHandler heartbeatHandler;
     private final List<Player> players = new ArrayList<>();
     private boolean hasAccountPlayer = false;
     private int nextPlayerId = 0;
     @Setter
     private String lobbyCode;
 
-    public Player addPlayer(User user, LobbyManager lobbyManager){
+    public Lobby(AppConfig config) {
+        heartbeatHandler = new HeartbeatHandler(this, config.getHeartbeatCheckIntervalSeconds());
+    }
+
+    public Player addPlayer(User user, LobbyManager lobbyManager) {
         // Check if player already exists before adding
         Optional<Player> existingPlayerOptional = players.stream().filter(p -> p.getUsername().equals(user.getUsername())).findFirst();
         if (existingPlayerOptional.isPresent()) {

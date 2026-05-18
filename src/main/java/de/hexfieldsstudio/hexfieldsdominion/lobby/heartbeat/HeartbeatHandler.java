@@ -10,8 +10,8 @@ import java.util.concurrent.*;
 @RequiredArgsConstructor
 public class HeartbeatHandler {
 
-    private static final long HEARTBEAT_CHECK_INTERVAL_SECONDS = 10;
     private final Lobby lobby;
+    private final long heartbeatCheckIntervalSeconds;
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final Map<Integer, HeartbeatExecutor> playerIdsExecutors = new HashMap<>();
 
@@ -63,7 +63,7 @@ public class HeartbeatHandler {
                     listener.onNoHeartbeat(heartbeatHandler.lobby, playerId);
                 }
                 this.cleanupAction.run();
-            }, CompletableFuture.delayedExecutor(HEARTBEAT_CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS, heartbeatHandler.executorService));
+            }, CompletableFuture.delayedExecutor(heartbeatHandler.heartbeatCheckIntervalSeconds, TimeUnit.SECONDS, heartbeatHandler.executorService));
         }
     }
 
