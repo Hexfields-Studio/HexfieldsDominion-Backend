@@ -3,6 +3,7 @@ plugins {
 	id 'org.springframework.boot' version '3.5.6'
 	id 'io.spring.dependency-management' version '1.1.7'
 	id 'jacoco'
+	id "org.sonarqube" version "7.3.0.8198"
 }
 
 group = 'de.hexfieldsstudio.hexfieldsdominion'
@@ -10,6 +11,15 @@ version = '0.0.1-SNAPSHOT'
 description = 'DH Projekt "Hexfields: Dominion"'
 
 java {}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "Hexfields-Studio_HexfieldsDominion-Backend"
+        property "sonar.organization", "hexfields-studio"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
+    }
+}
 
 configurations {
 	compileOnly {
@@ -46,10 +56,15 @@ dependencies {
     testRuntimeOnly 'com.h2database:h2:2.2.224'
 }
 
-tasks.named('test') {
+test {
 	useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }
 
-test {
-    finalizedBy jacocoTestReport
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true   // for SonarQube Cloud
+        html.required = true
+    }
 }
