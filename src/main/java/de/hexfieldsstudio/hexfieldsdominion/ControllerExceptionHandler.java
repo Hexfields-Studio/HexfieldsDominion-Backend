@@ -1,6 +1,7 @@
 package de.hexfieldsstudio.hexfieldsdominion;
 
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +13,11 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(LobbyNotFoundException.class)
-    public ResponseEntity<String> handleLobbyNotFound() {
+    @ExceptionHandler({
+            LobbyNotFoundException.class,
+            MatchNotFoundException.class
+    })
+    public ResponseEntity<String> handleNotFound() {
         return ResponseEntity.notFound().build();
     }
 
