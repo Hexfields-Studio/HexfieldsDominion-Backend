@@ -44,9 +44,15 @@ jobs:
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
-        
-      - name: Tests
-        run: ./gradlew test
+
+      - name: Run tests with coverage
+        run: ./gradlew test jacocoTestReport
+      
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: build/reports/jacoco/
 
 
     # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
