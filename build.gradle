@@ -17,7 +17,7 @@ sonar {
         property "sonar.projectKey", "Hexfields-Studio_HexfieldsDominion-Backend"
         property "sonar.organization", "hexfields-studio"
         property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
     }
 }
 
@@ -64,7 +64,9 @@ test {
 jacocoTestReport {
     dependsOn test
     reports {
-        xml.required = true   // for SonarQube Cloud
+        xml.required = true
+        xml.outputLocation = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
         html.required = true
+        html.outputLocation = file("${buildDir}/reports/jacoco/test/html")
     }
 }
