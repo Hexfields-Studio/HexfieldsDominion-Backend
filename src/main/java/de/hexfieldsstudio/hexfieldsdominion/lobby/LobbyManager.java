@@ -1,15 +1,12 @@
 package de.hexfieldsstudio.hexfieldsdominion.lobby;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
+import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
+import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
+import de.hexfieldsstudio.hexfieldsdominion.lobby.heartbeat.NoHeartbeatListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -17,18 +14,18 @@ import de.hexfieldsstudio.hexfieldsdominion.config.AppConfig;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.Player;
 
 @Component
-public class LobbyManager{
+public class LobbyManager implements NoHeartbeatListener {
 
     private final HashMap<String, Lobby> occupiedLobbies;
     private final List<Lobby> freeLobbies;
     private final Map<String, Map<String, SseEmitter>> lobbyEmitters = new ConcurrentHashMap<>();
 
-    public LobbyManager(AppConfig config){
+    public LobbyManager(AppConfig config) {
         int initialCapacity = config.getInitialCapacity();
         occupiedLobbies = new HashMap<>(initialCapacity);
         freeLobbies = new ArrayList<>();
         for (int i = 0; i < initialCapacity; i++){
-            freeLobbies.add(new Lobby());
+            freeLobbies.add(new Lobby(config));
         }
     }
 
@@ -36,6 +33,7 @@ public class LobbyManager{
         if (!freeLobbies.isEmpty()){
             Lobby lobby = freeLobbies.removeFirst();
             String lobbyCode = LobbyCodeGenerator.generateCode();
+            lobby.setLobbyCode(lobbyCode);
             occupiedLobbies.put(lobbyCode, lobby);
             //TODO: Apply configs here to lobby.
             return lobbyCode;
@@ -44,23 +42,29 @@ public class LobbyManager{
         }
     }
 
-    public boolean joinLobby(String lobbyCode, Player player, Map<String, Object> res) {
-        Lobby lobby = occupiedLobbies.get(lobbyCode);
-        if (lobby != null) {
-            lobby.addPlayer(player);
-            res.put("players", lobby.getPlayers());
-            notifyLobbyUpdate(lobbyCode, lobby.getPlayers());
-            return true;
-        } else return false;
+    public Player joinLobby(String lobbyCode, User user) throws LobbyNotFoundException {
+        Lobby lobby = this.findOccupiedLobbyOrThrow(lobbyCode);
+        Player player = lobby.addPlayer(user, this);
+        notifyLobbyUpdate(lobby);
+
+        lobby.getHeartbeatHandler().registerNoHeartbeat(player, this);
+        return player;
+    }
+
+    public Lobby findOccupiedLobbyOrThrow(String lobbyCode) throws LobbyNotFoundException {
+        if (!occupiedLobbies.containsKey(lobbyCode)) {
+            throw new LobbyNotFoundException(lobbyCode);
+        }
+        return occupiedLobbies.get(lobbyCode);
     }
 
     public SseEmitter subscribeToLobby(String lobbyCode, String username) {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         lobbyEmitters.computeIfAbsent(lobbyCode, k -> new ConcurrentHashMap<>()).put(username, emitter);
 
-        emitter.onCompletion(() -> unsubscribeFromLobby(lobbyCode, username));
-        emitter.onError((throwable) -> unsubscribeFromLobby(lobbyCode, username));
-        emitter.onTimeout(() -> unsubscribeFromLobby(lobbyCode, username));
+        emitter.onCompletion(() -> unsubscribeAndRemoveFromLobby(lobbyCode, username));
+        emitter.onError((throwable) -> unsubscribeAndRemoveFromLobby(lobbyCode, username));
+        emitter.onTimeout(() -> unsubscribeAndRemoveFromLobby(lobbyCode, username));
 
         // Send initial data
         Lobby lobby = occupiedLobbies.get(lobbyCode);
@@ -71,7 +75,7 @@ public class LobbyManager{
                     emitter.send(SseEmitter.event().name("lobbyUpdate").data(players));
                 }
             } catch (IOException e) {
-                unsubscribeFromLobby(lobbyCode, username);
+                unsubscribeAndRemoveFromLobby(lobbyCode, username);
             }
         }
 
@@ -86,20 +90,27 @@ public class LobbyManager{
                 lobbyEmitters.remove(lobbyCode);
             }
         }
+    }
 
+    private void removePlayerFromLobby(String lobbyCode, String username) {
         // Remove player from lobby
         Lobby lobby = occupiedLobbies.get(lobbyCode);
         if (lobby != null) {
             lobby.removePlayer(username);
-            notifyLobbyUpdate(lobbyCode, lobby.getPlayers());
+            notifyLobbyUpdate(lobby);
 
             // Check if lobby should be marked as free
             checkLobbyCleanup(lobbyCode, lobby);
         }
     }
 
+    private void unsubscribeAndRemoveFromLobby(String lobbyCode, String username) {
+        this.unsubscribeFromLobby(lobbyCode, username);
+        this.removePlayerFromLobby(lobbyCode, username);
+    }
+
     private void checkLobbyCleanup(String lobbyCode, Lobby lobby) {
-        /* UNUSED CODE 
+        /* UNUSED CODE
         List<Player> players = lobby.getPlayers();
         if (players.isEmpty()) {
             // No players left
@@ -121,7 +132,10 @@ public class LobbyManager{
         System.out.println("Stub: Saving lobby " + lobbyCode + " to database for resumption.");*/
     }
 
-    private void notifyLobbyUpdate(String lobbyCode, List<Player> players) {
+    private void notifyLobbyUpdate(Lobby lobby) {
+        String lobbyCode = lobby.getLobbyCode();
+        List<Player> players = lobby.getPlayers();
+
         if (players == null) {
             return;
         }
@@ -135,8 +149,12 @@ public class LobbyManager{
                     deadUsers.add(entry.getKey());
                 }
             }
-            deadUsers.forEach(username -> unsubscribeFromLobby(lobbyCode, username));
+            deadUsers.forEach(username -> unsubscribeAndRemoveFromLobby(lobbyCode, username));
         }
     }
 
+    @Override
+    public void onNoHeartbeat(Lobby lobby, int playerId) {
+        notifyLobbyUpdate(lobby);
+    }
 }

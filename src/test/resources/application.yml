@@ -1,6 +1,7 @@
 app:
   lobbyManager:
     initialCapacity: 50
+    heartbeatCheckIntervalSeconds: 10
   frontend:
     host: https://hexfields-studio.github.io
   jwt:
