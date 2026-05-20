@@ -42,7 +42,7 @@ dependencies {
 	implementation 'org.springframework:spring-core'
     // Source: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
     implementation "org.bouncycastle:bcprov-jdk18on:1.84"
-    testRuntimeOnly 'com.h2database:h2:2.2.224'
+    testRuntimeOnly 'com.h2database:h2:2.4.240'
 }
 
 tasks.named('test') {
