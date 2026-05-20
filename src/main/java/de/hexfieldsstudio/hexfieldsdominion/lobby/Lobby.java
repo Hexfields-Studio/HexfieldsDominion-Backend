@@ -3,8 +3,8 @@ package de.hexfieldsstudio.hexfieldsdominion.lobby;
 import java.util.*;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
-import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.config.AppConfig;
+import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.Player;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.heartbeat.HeartbeatHandler;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.heartbeat.NoHeartbeatListener;
