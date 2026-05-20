@@ -74,21 +74,15 @@ public class LobbyController {
     }
 
     @PostMapping("/{lobbyCode}/match")
-    public CreatedMatchResponse match(@PathVariable String lobbyCode) throws LobbyNotFoundException {
+    public LobbyManager.CreatedMatchResponse match(@PathVariable String lobbyCode) throws LobbyNotFoundException {
         Lobby lobby = lobbyManager.findOccupiedLobbyOrThrow(lobbyCode);
-        Match match = lobbyManager.createMatchForLobby(lobby);
-        return new CreatedMatchResponse(match);
+        Match match = lobbyManager.createMatchForLobby(lobby, AuthUtils.getAuthenticatedUser());
+        return new LobbyManager.CreatedMatchResponse(match);
     }
 
     public record CreatedPlayerResponse(String username, int id, boolean isAccount) {
         public CreatedPlayerResponse(Player player) {
             this(player.getUsername(), player.getId(), player.isAccount());
-        }
-    }
-
-    public record CreatedMatchResponse(String matchUUID) {
-        public CreatedMatchResponse(Match match) {
-            this(match.getUuid().toString());
         }
     }
 

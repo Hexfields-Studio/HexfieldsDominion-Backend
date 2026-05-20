@@ -1,10 +1,12 @@
 package de.hexfieldsstudio.hexfieldsdominion;
 
+import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public abstract class SseSender <T> {
 
@@ -22,6 +24,10 @@ public abstract class SseSender <T> {
     }
 
     protected void sendEvent(Map<String, SseEmitter> emitters, String name, Object data, T group) {
+        if (emitters == null) {
+            return;
+        }
+
         for (Map.Entry<String, SseEmitter> entry : emitters.entrySet()) {
             try {
                 entry.getValue().send(SseEmitter.event().name(name).data(data));
@@ -29,6 +35,20 @@ public abstract class SseSender <T> {
                 unsubscribe(group, entry.getKey());
             }
         }
+    }
+
+    protected Map<String, SseEmitter> allEmitters(T group) {
+        return groupsEmitters.get(group);
+    }
+
+    protected Map<String, SseEmitter> allEmittersExcept(T group, User user) {
+        return allEmitters(group).entrySet().stream()
+                .filter(entry -> !entry.getKey().equals(user.getUsername()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    protected Map<String, SseEmitter> emittersOfOnly(String username, SseEmitter emitter) {
+        return Map.of(username, emitter);
     }
 
     private void unsubscribe(T group, String username) {

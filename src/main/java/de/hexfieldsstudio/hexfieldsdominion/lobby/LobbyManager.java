@@ -88,17 +88,15 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
         if (players == null) {
             return;
         }
-        Map<String, SseEmitter> emitters = groupsEmitters.get(lobbyCode);
-        if (emitters == null) {
-            return;
-        }
-        sendEvent(emitters, "lobbyUpdate", players, lobbyCode);
+        sendEvent(allEmitters(lobbyCode), "lobbyUpdate", players, lobbyCode);
     }
 
-    public Match createMatchForLobby(Lobby lobby) {
-        // random uuid could be replaced int the future to ensure uniqueness
+    public Match createMatchForLobby(Lobby lobby, User user) {
+        // random uuid could be replaced in the future to ensure uniqueness
         Match match = new Match(UUID.randomUUID());
         lobby.setMatch(match);
+
+        sendEvent(allEmittersExcept(lobby.getLobbyCode(), user), "matchCreated", new CreatedMatchResponse(match), lobby.getLobbyCode());
         return match;
     }
 
@@ -113,12 +111,11 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
     public SseEmitter subscribe(String lobbyCode, String username) {
         SseEmitter emitter = createEmitter(username, lobbyCode);
 
-        Map<String, SseEmitter> emitters = Map.of(username, emitter);
         Lobby lobby = occupiedLobbies.get(lobbyCode);
         if (lobby == null) {
             return emitter;
         }
-        sendEvent(emitters, "lobbyUpdate", lobby.getPlayers(), lobbyCode);
+        sendEvent(emittersOfOnly(username, emitter), "lobbyUpdate", lobby.getPlayers(), lobbyCode);
 
         return emitter;
     }
@@ -140,4 +137,11 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
     public void onNoHeartbeat(Lobby lobby, int playerId) {
         notifyLobbyUpdate(lobby);
     }
+
+    public record CreatedMatchResponse(String matchUUID) {
+        public CreatedMatchResponse(Match match) {
+            this(match.getUuid().toString());
+        }
+    }
+
 }

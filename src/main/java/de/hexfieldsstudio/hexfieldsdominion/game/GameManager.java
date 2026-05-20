@@ -1,6 +1,7 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
 import de.hexfieldsstudio.hexfieldsdominion.SseSender;
+import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import lombok.RequiredArgsConstructor;
@@ -8,7 +9,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -19,7 +19,7 @@ public class GameManager extends SseSender<UUID> {
 
     private final LobbyManager lobbyManager;
 
-    public RollDiceResponse rollDice(UUID gameUUID, String username) throws MatchNotFoundException {
+    public RollDiceResponse rollDice(UUID gameUUID, User user) throws MatchNotFoundException {
         Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
 
         Random random = new Random();
@@ -29,14 +29,7 @@ public class GameManager extends SseSender<UUID> {
         RollDiceResponse response = new RollDiceResponse(value1, value2);
         match.setCurrentDiceResult(new Integer[]{value1, value2});
 
-        Map<String, SseEmitter> emitters = groupsEmitters.get(gameUUID);
-        if (emitters == null) {
-            return response;
-        }
-        Map<String, SseEmitter> emittersWithoutUser = emitters.entrySet().stream()
-                        .filter(entry -> !entry.getKey().equals(username))
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        sendEvent(emittersWithoutUser, "rollDice", response, gameUUID);
+        sendEvent(allEmittersExcept(gameUUID, user), "rollDice", response, gameUUID);
         return response;
     }
 
@@ -44,8 +37,7 @@ public class GameManager extends SseSender<UUID> {
     public SseEmitter subscribe(UUID matchUUID, String username) {
         SseEmitter emitter = createEmitter(username, matchUUID);
 
-        Map<String, SseEmitter> emitters = Map.of(username, emitter);
-        sendEvent(emitters, "initialData", "initialData", matchUUID);
+        sendEvent(emittersOfOnly(username, emitter), "initialData", "initialData", matchUUID);
 
         return emitter;
     }

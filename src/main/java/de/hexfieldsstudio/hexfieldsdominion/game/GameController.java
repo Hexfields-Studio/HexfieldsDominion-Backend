@@ -1,7 +1,6 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
-import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
@@ -37,9 +36,7 @@ public class GameController {
 
     @PostMapping("/{gameUUID}/rollDice")
     public GameManager.RollDiceResponse rollDice(@PathVariable UUID gameUUID) throws MatchNotFoundException {
-        User user = AuthUtils.getAuthenticatedUser();
-
-        return gameManager.rollDice(gameUUID, user.getUsername());
+        return gameManager.rollDice(gameUUID, AuthUtils.getAuthenticatedUser());
     }
 
     @PostMapping("/{gameUUID}/endTurn")
