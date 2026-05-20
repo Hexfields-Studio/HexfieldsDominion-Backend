@@ -16,6 +16,9 @@ public class AppConfig {
     @Value("${app.lobbyManager.initialCapacity}")
     private int initialCapacity;
 
+    @Value("${app.lobbyManager.heartbeatCheckIntervalSeconds}")
+    private long heartbeatCheckIntervalSeconds;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();

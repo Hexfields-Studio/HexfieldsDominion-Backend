@@ -21,8 +21,9 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+    implementation 'io.github.cdimascio:dotenv-java:3.2.0'
 
+	testImplementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -40,7 +41,8 @@ dependencies {
 	implementation 'org.springframework.data:spring-data-commons'
 	implementation 'org.springframework:spring-core'
     // Source: https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
-    implementation("org.bouncycastle:bcprov-jdk18on:1.84")
+    implementation "org.bouncycastle:bcprov-jdk18on:1.84"
+    testRuntimeOnly 'com.h2database:h2:2.4.240'
 }
 
 tasks.named('test') {

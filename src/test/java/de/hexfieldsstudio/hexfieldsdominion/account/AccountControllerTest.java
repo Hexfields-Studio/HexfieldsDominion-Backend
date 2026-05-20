@@ -1,0 +1,163 @@
+package de.hexfieldsstudio.hexfieldsdominion.account;
+
+import de.hexfieldsstudio.hexfieldsdominion.account.dto.LoginDTO;
+import de.hexfieldsstudio.hexfieldsdominion.account.dto.RegisterDTO;
+import de.hexfieldsstudio.hexfieldsdominion.account.token.SseTokenService;
+import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.ResponseEntity;
+
+import java.util.Optional;
+import java.util.function.Function;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class AccountControllerTest {
+
+    @InjectMocks
+    private AccountController accountController;
+
+    @Mock
+    private AuthenticationService authenticationService;
+
+    @Mock
+    private SseTokenService sseTokenService;
+
+    @Mock
+    private HttpServletResponse response;
+
+    @Test
+    public void testGuest() {
+        this.testAuthSuccess(authenticationResult -> {
+            when(authenticationService.guest()).thenReturn(authenticationResult);
+
+            return accountController.guest(response);
+        });
+    }
+
+    @Test
+    public void testRegisterSuccess() {
+        this.testAuthSuccess(this.getRegisterTestFunction());
+    }
+
+    @Test
+    public void testRegisterFail() {
+        this.testAuthFail(this.getRegisterTestFunction());
+    }
+
+    private Function<AuthenticationResult, ResponseEntity<AuthenticationResponse>> getRegisterTestFunction() {
+        return authenticationResult -> {
+            RegisterDTO registerDTO = new RegisterDTO("testuser", "pw");
+
+            when(authenticationService.register(registerDTO)).thenReturn(authenticationResult);
+
+            return accountController.register(registerDTO, response);
+        };
+    }
+
+    @Test
+    public void testLoginSuccess() {
+        this.testAuthSuccess(this.getLoginTestFunction());
+    }
+
+    @Test
+    public void testLoginFail() {
+        this.testAuthFail(this.getLoginTestFunction());
+    }
+
+    private Function<AuthenticationResult, ResponseEntity<AuthenticationResponse>> getLoginTestFunction() {
+        return authenticationResult -> {
+            LoginDTO loginDTO = new LoginDTO("testuser", "pw");
+
+            when(authenticationService.login(loginDTO)).thenReturn(authenticationResult);
+
+            return accountController.login(loginDTO, response);
+        };
+    }
+
+    @Test
+    public void testRefreshSuccess() {
+        this.testAuthSuccess(authenticationResult -> {
+            when(authenticationService.refresh(anyString())).thenReturn(Optional.of(authenticationResult));
+
+            return accountController.refresh("oldToken", response);
+        });
+    }
+
+    @Test
+    public void testRefreshFailInvalidToken() {
+        when(authenticationService.refresh(anyString())).thenReturn(Optional.empty());
+
+        ResponseEntity<AuthenticationResponse> responseEntity = accountController.refresh("oldToken", response);
+
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, responseEntity.getStatusCode().value());
+        verify(response, never()).addCookie(isA(Cookie.class));
+    }
+
+    @Test
+    public void testLogout() {
+        AuthenticationResult authenticationResult = AuthenticationResult.builder()
+                .refreshTokenCookie(new Cookie("logoutCookie", ""))
+                .build();
+
+        when(authenticationService.logout(any())).thenReturn(authenticationResult);
+
+        accountController.logout(null, response);
+
+        verify(response).addCookie(authenticationResult.refreshTokenCookie());
+        verify(response).setStatus(HttpServletResponse.SC_OK);
+    }
+
+    @Test
+    public void testSseToken() {
+        String createdToken = "someToken";
+
+        try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
+            authUtils.when(AuthUtils::getAuthenticatedUser).thenReturn(new User());
+            when(sseTokenService.createToken(any())).thenReturn(createdToken);
+
+            ResponseEntity<String> response = accountController.sseToken();
+
+            assertEquals(HttpServletResponse.SC_OK, response.getStatusCode().value());
+            assertEquals(createdToken, response.getBody());
+        }
+    }
+
+    private void testAuthSuccess(Function<AuthenticationResult, ResponseEntity<AuthenticationResponse>> function) {
+        AuthenticationResult authenticationResult = AuthenticationResult.builder()
+                .authenticationResponse(new SuccessAuthenticationResponse("token"))
+                .refreshTokenCookie(new Cookie("tokenCookie", "token"))
+                .build();
+
+        ResponseEntity<AuthenticationResponse> responseEntity = function.apply(authenticationResult);
+
+        assertEquals(HttpServletResponse.SC_OK, responseEntity.getStatusCode().value());
+        assertEquals(authenticationResult.authenticationResponse(), responseEntity.getBody());
+        // we can't test if the responseEntity or response contains the cookie (no getter)
+        verify(response).addCookie(authenticationResult.refreshTokenCookie());
+    }
+
+    private void testAuthFail(Function<AuthenticationResult, ResponseEntity<AuthenticationResponse>> function) {
+        ErrorAuthenticationResponse errorResponse = new ErrorAuthenticationResponse("some error occurred");
+
+        AuthenticationResult authenticationResult = AuthenticationResult.builder()
+                .authenticationResponse(errorResponse)
+                .build();
+
+        ResponseEntity<AuthenticationResponse> responseEntity = function.apply(authenticationResult);
+
+        assertEquals(errorResponse.statusCode(), responseEntity.getStatusCode().value());
+        assertEquals(errorResponse, responseEntity.getBody());
+        verify(response, never()).addCookie(authenticationResult.refreshTokenCookie());
+    }
+
+}

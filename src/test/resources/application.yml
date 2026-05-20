@@ -1,0 +1,22 @@
+app:
+  lobbyManager:
+    initialCapacity: 50
+    heartbeatCheckIntervalSeconds: 10
+  frontend:
+    host: https://hexfields-studio.github.io
+  jwt:
+    secretKey: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+spring:
+  application:
+    name: hexfields-dominion
+  datasource:
+    url: jdbc:h2:mem:mydb
+    username: sa
+    password: password
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+
+server:
+  port: ${PORT:8080}

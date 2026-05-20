@@ -2,6 +2,8 @@ package de.hexfieldsstudio.hexfieldsdominion.account;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.dto.LoginDTO;
 import de.hexfieldsstudio.hexfieldsdominion.account.dto.RegisterDTO;
+import de.hexfieldsstudio.hexfieldsdominion.account.token.SseTokenService;
+import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import static de.hexfieldsstudio.hexfieldsdominion.account.token.AuthTokens.REFR
 public class AccountController {
 
     private final AuthenticationService authenticationService;
+    private final SseTokenService sseTokenService;
 
     @PostMapping("/guest")
     public ResponseEntity<AuthenticationResponse> guest(HttpServletResponse response) {
@@ -42,6 +45,10 @@ public class AccountController {
     public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginDTO request, HttpServletResponse response) {
         AuthenticationResult result = authenticationService.login(request);
 
+        if (result.authenticationResponse() instanceof ErrorAuthenticationResponse errorResponse) {
+            return ResponseEntity.status(errorResponse.statusCode()).body(errorResponse);
+        }
+
         response.addCookie(result.refreshTokenCookie());
 
         return ResponseEntity.ok(result.authenticationResponse());
@@ -64,6 +71,15 @@ public class AccountController {
         response.addCookie(result.refreshTokenCookie());
 
         response.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    @GetMapping("/ssetoken")
+    public ResponseEntity<String> sseToken() {
+        User user = AuthUtils.getAuthenticatedUser();
+
+        String token = sseTokenService.createToken(user);
+
+        return ResponseEntity.ok(token);
     }
 
 }
