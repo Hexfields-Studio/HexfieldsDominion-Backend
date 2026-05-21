@@ -5,6 +5,7 @@ import de.hexfieldsstudio.hexfieldsdominion.account.dto.RegisterDTO;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.SseTokenService;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ public class AccountController {
     private final SseTokenService sseTokenService;
 
     @PostMapping("/guest")
-    public ResponseEntity<AuthenticationResponse> guest(HttpServletResponse response) {
+    public ResponseEntity<@NonNull AuthenticationResponse> guest(HttpServletResponse response) {
         AuthenticationResult result = authenticationService.guest();
 
         response.addCookie(result.refreshTokenCookie());
@@ -29,7 +30,7 @@ public class AccountController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterDTO request, HttpServletResponse response) {
+    public ResponseEntity<@NonNull AuthenticationResponse> register(@RequestBody RegisterDTO request, HttpServletResponse response) {
         AuthenticationResult result = authenticationService.register(request);
 
         if (result.authenticationResponse() instanceof ErrorAuthenticationResponse errorResponse) {
@@ -42,7 +43,7 @@ public class AccountController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginDTO request, HttpServletResponse response) {
+    public ResponseEntity<@NonNull AuthenticationResponse> login(@RequestBody LoginDTO request, HttpServletResponse response) {
         AuthenticationResult result = authenticationService.login(request);
 
         if (result.authenticationResponse() instanceof ErrorAuthenticationResponse errorResponse) {
@@ -55,7 +56,7 @@ public class AccountController {
     }
 
     @GetMapping("/refresh")
-    public ResponseEntity<AuthenticationResponse> refresh(@CookieValue(REFRESH_TOKEN_NAME) String oldRefreshToken, HttpServletResponse response) {
+    public ResponseEntity<@NonNull AuthenticationResponse> refresh(@CookieValue(REFRESH_TOKEN_NAME) String oldRefreshToken, HttpServletResponse response) {
         return authenticationService.refresh(oldRefreshToken).map(result -> {
             response.addCookie(result.refreshTokenCookie());
 
@@ -74,7 +75,7 @@ public class AccountController {
     }
 
     @GetMapping("/ssetoken")
-    public ResponseEntity<String> sseToken() {
+    public ResponseEntity<@NonNull String> sseToken() {
         User user = AuthUtils.getAuthenticatedUser();
 
         String token = sseTokenService.createToken(user);

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.token.SseTokenService;
-import lombok.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,7 +38,8 @@ public class SseTokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+    @NullMarked
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String queryString = request.getQueryString();
         if (queryString == null || !queryString.contains("sseToken=") || SecurityContextHolder.getContext().getAuthentication() != null) {
             filterChain.doFilter(request, response);

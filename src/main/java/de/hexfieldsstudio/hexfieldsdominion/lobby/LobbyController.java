@@ -7,6 +7,7 @@ import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
 import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.dto.HeartbeatDTO;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,7 @@ public class LobbyController {
     private final LobbyManager lobbyManager;
 
     @PatchMapping(produces = "application/json")
-    public ResponseEntity<Map<String, String>> createLobby(@RequestBody(required = false) CreateLobbyDTO dto) {
+    public ResponseEntity<@NonNull Map<String, String>> createLobby(@RequestBody(required = false) CreateLobbyDTO dto) {
         Map<String, String> res = new HashMap<>();
         try{
             String lobbyCode = lobbyManager.createLobby(
@@ -43,7 +44,7 @@ public class LobbyController {
     }
 
     @PostMapping("/{lobbyCode}")
-    public ResponseEntity<CreatedPlayerResponse> joinLobby(@PathVariable String lobbyCode) throws LobbyNotFoundException {
+    public ResponseEntity<@NonNull CreatedPlayerResponse> joinLobby(@PathVariable String lobbyCode) throws LobbyNotFoundException {
         User user = AuthUtils.getAuthenticatedUser();
 
         Player createdPlayer = lobbyManager.joinLobby(lobbyCode, user);
@@ -51,7 +52,7 @@ public class LobbyController {
     }
 
     @GetMapping("/{lobbyCode}/exists")
-    public ResponseEntity<Boolean> doesLobbyWithCodeExist(@PathVariable String lobbyCode) {
+    public ResponseEntity<@NonNull Boolean> doesLobbyWithCodeExist(@PathVariable String lobbyCode) {
         try {
             lobbyManager.findOccupiedLobbyOrThrow(lobbyCode);
             return ResponseEntity.ok(true);
