@@ -7,6 +7,7 @@ import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
 import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.dto.HeartbeatDTO;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
+import de.hexfieldsstudio.hexfieldsdominion.lobby.error.NotOwnerOfLobbyException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
-import de.hexfieldsstudio.hexfieldsdominion.game.player.Player;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.dto.CreateLobbyDTO;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,9 +31,8 @@ public class LobbyController {
         Map<String, String> res = new HashMap<>();
         try{
             String lobbyCode = lobbyManager.createLobby(
-                    (dto != null)
-                    ? dto.configs()
-                    : new String[0]
+                    (dto != null) ? dto.configs() : new String[0],
+                    AuthUtils.getAuthenticatedUser().getUsername()
             );
             res.put("lobbyCode", lobbyCode);
             return ResponseEntity.ok(res);
@@ -44,11 +43,11 @@ public class LobbyController {
     }
 
     @PostMapping("/{lobbyCode}")
-    public ResponseEntity<@NonNull CreatedPlayerResponse> joinLobby(@PathVariable String lobbyCode) throws LobbyNotFoundException {
+    public ResponseEntity<LobbyManager.@NonNull JoinedLobbyResponse> joinLobby(@PathVariable String lobbyCode) throws LobbyNotFoundException {
         User user = AuthUtils.getAuthenticatedUser();
 
-        Player createdPlayer = lobbyManager.joinLobby(lobbyCode, user);
-        return ResponseEntity.ok(new CreatedPlayerResponse(createdPlayer));
+        LobbyManager.JoinedLobbyResponse response = lobbyManager.joinLobby(lobbyCode, user);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{lobbyCode}/exists")
@@ -75,16 +74,10 @@ public class LobbyController {
     }
 
     @PostMapping("/{lobbyCode}/match")
-    public LobbyManager.CreatedMatchResponse match(@PathVariable String lobbyCode) throws LobbyNotFoundException {
+    public LobbyManager.CreatedMatchResponse match(@PathVariable String lobbyCode) throws LobbyNotFoundException, NotOwnerOfLobbyException {
         Lobby lobby = lobbyManager.findOccupiedLobbyOrThrow(lobbyCode);
         Match match = lobbyManager.createMatchForLobby(lobby, AuthUtils.getAuthenticatedUser());
         return new LobbyManager.CreatedMatchResponse(match);
-    }
-
-    public record CreatedPlayerResponse(String username, int id, boolean isAccount) {
-        public CreatedPlayerResponse(Player player) {
-            this(player.getUsername(), player.getId(), player.isAccount());
-        }
     }
 
 }
