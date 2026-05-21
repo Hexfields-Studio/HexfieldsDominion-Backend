@@ -47,7 +47,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         RequestMatcher routesNoAuthCheck = new RegexRequestMatcher("/|/auth/(guest|register|login|logout)", null);
 
         http
