@@ -1,0 +1,60 @@
+services:
+  db:
+    container_name: hexfields-db
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${postgres_db}
+      POSTGRES_USER: ${postgres_user}
+      POSTGRES_PASSWORD: ${postgres_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hexfields"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  backend:
+    container_name: hexfields-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: ${spring_datasource_url}  #'db' from the service name; 'hexfields' from the 'POSTGRES_DB' variable
+      SPRING_DATASOURCE_USERNAME: ${postgres_user}
+      SPRING_DATASOURCE_PASSWORD: ${postgres_password}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: ${spring_datasource_driver_class_name}
+
+      SPRING_JPA_HIBERNATE_DLL_AUTO: ${spring_jpa_hibernate_ddl_auto}
+
+      APP_JWT_SECRETKEY: ${app_jwt_secretKey}
+      APP_FRONTEND_HOST: ${app_frontend_host}
+
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # This service is completely optional, can be removed; it is just a webui to interact with the database
+  # Open on localhost:5050 with credentials admin/admin
+  pgadmin:
+    container_name: hexfields-pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${pgadmin_default_email}
+      PGADMIN_DEFAULT_PASSWORD: ${pgadmin_default_password}
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  db_data:
