@@ -28,7 +28,7 @@ public class SseTokenAuthenticationFilter extends OncePerRequestFilter {
     private final AllUserRepository userRepository;
 
     public static boolean doesFilter(String path) {
-        return path.matches("/lobbies/[a-zA-Z0-9]+/events");
+        return path.matches("/lobbies/[a-zA-Z0-9]+/events|/games/[a-z0-9-]+/events");
     }
 
     @Override

@@ -1,11 +1,12 @@
 package de.hexfieldsstudio.hexfieldsdominion.lobby;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
+import de.hexfieldsstudio.hexfieldsdominion.SseSender;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
+import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.heartbeat.NoHeartbeatListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -14,11 +15,10 @@ import de.hexfieldsstudio.hexfieldsdominion.config.AppConfig;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.Player;
 
 @Component
-public class LobbyManager implements NoHeartbeatListener {
+public class LobbyManager extends SseSender<String> implements NoHeartbeatListener {
 
     private final HashMap<String, Lobby> occupiedLobbies;
     private final List<Lobby> freeLobbies;
-    private final Map<String, Map<String, SseEmitter>> lobbyEmitters = new ConcurrentHashMap<>();
 
     public LobbyManager(AppConfig config) {
         int initialCapacity = config.getInitialCapacity();
@@ -58,57 +58,6 @@ public class LobbyManager implements NoHeartbeatListener {
         return occupiedLobbies.get(lobbyCode);
     }
 
-    public SseEmitter subscribeToLobby(String lobbyCode, String username) {
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        lobbyEmitters.computeIfAbsent(lobbyCode, k -> new ConcurrentHashMap<>()).put(username, emitter);
-
-        emitter.onCompletion(() -> unsubscribeAndRemoveFromLobby(lobbyCode, username));
-        emitter.onError((throwable) -> unsubscribeAndRemoveFromLobby(lobbyCode, username));
-        emitter.onTimeout(() -> unsubscribeAndRemoveFromLobby(lobbyCode, username));
-
-        // Send initial data
-        Lobby lobby = occupiedLobbies.get(lobbyCode);
-        if (lobby != null) {
-            try {
-                List<Player> players = lobby.getPlayers();
-                if (players != null) {
-                    emitter.send(SseEmitter.event().name("lobbyUpdate").data(players));
-                }
-            } catch (IOException e) {
-                unsubscribeAndRemoveFromLobby(lobbyCode, username);
-            }
-        }
-
-        return emitter;
-    }
-
-    private void unsubscribeFromLobby(String lobbyCode, String username) {
-        Map<String, SseEmitter> emitters = lobbyEmitters.get(lobbyCode);
-        if (emitters != null) {
-            emitters.remove(username);
-            if (emitters.isEmpty()) {
-                lobbyEmitters.remove(lobbyCode);
-            }
-        }
-    }
-
-    private void removePlayerFromLobby(String lobbyCode, String username) {
-        // Remove player from lobby
-        Lobby lobby = occupiedLobbies.get(lobbyCode);
-        if (lobby != null) {
-            lobby.removePlayer(username);
-            notifyLobbyUpdate(lobby);
-
-            // Check if lobby should be marked as free
-            checkLobbyCleanup(lobbyCode, lobby);
-        }
-    }
-
-    private void unsubscribeAndRemoveFromLobby(String lobbyCode, String username) {
-        this.unsubscribeFromLobby(lobbyCode, username);
-        this.removePlayerFromLobby(lobbyCode, username);
-    }
-
     private void checkLobbyCleanup(String lobbyCode, Lobby lobby) {
         /* UNUSED CODE
         List<Player> players = lobby.getPlayers();
@@ -139,17 +88,48 @@ public class LobbyManager implements NoHeartbeatListener {
         if (players == null) {
             return;
         }
-        Map<String, SseEmitter> emitters = lobbyEmitters.get(lobbyCode);
-        if (emitters != null) {
-            List<String> deadUsers = new ArrayList<>();
-            for (Map.Entry<String, SseEmitter> entry : emitters.entrySet()) {
-                try {
-                    entry.getValue().send(SseEmitter.event().name("lobbyUpdate").data(players));
-                } catch (IOException e) {
-                    deadUsers.add(entry.getKey());
-                }
-            }
-            deadUsers.forEach(username -> unsubscribeAndRemoveFromLobby(lobbyCode, username));
+        sendEvent(allEmitters(lobbyCode), "lobbyUpdate", players, lobbyCode);
+    }
+
+    public Match createMatchForLobby(Lobby lobby, User user) {
+        // random uuid could be replaced in the future to ensure uniqueness
+        Match match = new Match(UUID.randomUUID());
+        lobby.setMatch(match);
+
+        sendEvent(allEmittersExcept(lobby.getLobbyCode(), user), "matchCreated", new CreatedMatchResponse(match), lobby.getLobbyCode());
+        return match;
+    }
+
+    public Lobby findLobbyByMatch(UUID matchUUID) throws MatchNotFoundException {
+        return occupiedLobbies.values().stream()
+                    .filter(lobby -> matchUUID.equals(lobby.getMatch().getUuid()))
+                    .findFirst()
+                    .orElseThrow(() -> new MatchNotFoundException(matchUUID));
+    }
+
+    @Override
+    public SseEmitter subscribe(String lobbyCode, String username) {
+        SseEmitter emitter = createEmitter(username, lobbyCode);
+
+        Lobby lobby = occupiedLobbies.get(lobbyCode);
+        if (lobby == null) {
+            return emitter;
+        }
+        sendEvent(emittersOfOnly(username, emitter), "lobbyUpdate", lobby.getPlayers(), lobbyCode);
+
+        return emitter;
+    }
+
+    @Override
+    protected void onUnsubscribe(String lobbyCode, String username) {
+        // Remove player from lobby
+        Lobby lobby = occupiedLobbies.get(lobbyCode);
+        if (lobby != null) {
+            lobby.removePlayer(username);
+            notifyLobbyUpdate(lobby);
+
+            // Check if lobby should be marked as free
+            checkLobbyCleanup(lobbyCode, lobby);
         }
     }
 
@@ -157,4 +137,11 @@ public class LobbyManager implements NoHeartbeatListener {
     public void onNoHeartbeat(Lobby lobby, int playerId) {
         notifyLobbyUpdate(lobby);
     }
+
+    public record CreatedMatchResponse(String matchUUID) {
+        public CreatedMatchResponse(Match match) {
+            this(match.getUuid().toString());
+        }
+    }
+
 }

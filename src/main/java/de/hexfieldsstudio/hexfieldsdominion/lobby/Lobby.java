@@ -4,6 +4,7 @@ import java.util.*;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.config.AppConfig;
+import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.Player;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.heartbeat.HeartbeatHandler;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.heartbeat.NoHeartbeatListener;
@@ -19,6 +20,9 @@ public class Lobby implements NoHeartbeatListener {
     private int nextPlayerId = 0;
     @Setter
     private String lobbyCode;
+    @Setter
+    @Getter
+    private Match match;
 
     public Lobby(AppConfig config) {
         heartbeatHandler = new HeartbeatHandler(this, config.getHeartbeatCheckIntervalSeconds());
@@ -31,7 +35,7 @@ public class Lobby implements NoHeartbeatListener {
             Player existingPlayer = existingPlayerOptional.get();
             heartbeatHandler.resetTimer(existingPlayer.getId());
             // we can't reuse the connection for the same username
-            lobbyManager.subscribeToLobby(lobbyCode, existingPlayer.getUsername());
+            lobbyManager.subscribe(lobbyCode, existingPlayer.getUsername());
             return existingPlayer;
         }
 

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
+import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.dto.HeartbeatDTO;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -69,7 +70,14 @@ public class LobbyController {
     public SseEmitter lobbyEvents(@PathVariable String lobbyCode) {
         User user = AuthUtils.getAuthenticatedUser();
 
-        return lobbyManager.subscribeToLobby(lobbyCode, user.getUsername());
+        return lobbyManager.subscribe(lobbyCode, user.getUsername());
+    }
+
+    @PostMapping("/{lobbyCode}/match")
+    public LobbyManager.CreatedMatchResponse match(@PathVariable String lobbyCode) throws LobbyNotFoundException {
+        Lobby lobby = lobbyManager.findOccupiedLobbyOrThrow(lobbyCode);
+        Match match = lobbyManager.createMatchForLobby(lobby, AuthUtils.getAuthenticatedUser());
+        return new LobbyManager.CreatedMatchResponse(match);
     }
 
     public record CreatedPlayerResponse(String username, int id, boolean isAccount) {
