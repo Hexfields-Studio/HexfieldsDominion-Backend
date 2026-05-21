@@ -23,9 +23,11 @@ public class Lobby implements NoHeartbeatListener {
     @Setter
     @Getter
     private Match match;
+    @Setter
+    private String owner;
 
     public Lobby(AppConfig config) {
-        heartbeatHandler = new HeartbeatHandler(this, config.getHeartbeatCheckIntervalSeconds());
+        this.heartbeatHandler = new HeartbeatHandler(this, config.getHeartbeatCheckIntervalSeconds());
     }
 
     public Player addPlayer(User user, LobbyManager lobbyManager) {
@@ -56,6 +58,10 @@ public class Lobby implements NoHeartbeatListener {
 
     public void removePlayer(int id) {
         players.removeIf(p -> p.getId() == id);
+    }
+
+    public boolean isOwner(String username) {
+        return this.owner.equals(username);
     }
 
     @Override

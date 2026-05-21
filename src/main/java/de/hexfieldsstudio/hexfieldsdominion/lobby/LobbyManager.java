@@ -7,6 +7,7 @@ import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
+import de.hexfieldsstudio.hexfieldsdominion.lobby.error.NotOwnerOfLobbyException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.heartbeat.NoHeartbeatListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -29,9 +30,10 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
         }
     }
 
-    public String createLobby(String[] configs) throws Exception {
+    public String createLobby(String[] configs, String owner) throws Exception {
         if (!freeLobbies.isEmpty()){
             Lobby lobby = freeLobbies.removeFirst();
+            lobby.setOwner(owner);
             String lobbyCode = LobbyCodeGenerator.generateCode();
             lobby.setLobbyCode(lobbyCode);
             occupiedLobbies.put(lobbyCode, lobby);
@@ -42,13 +44,13 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
         }
     }
 
-    public Player joinLobby(String lobbyCode, User user) throws LobbyNotFoundException {
+    public JoinedLobbyResponse joinLobby(String lobbyCode, User user) throws LobbyNotFoundException {
         Lobby lobby = this.findOccupiedLobbyOrThrow(lobbyCode);
         Player player = lobby.addPlayer(user, this);
         notifyLobbyUpdate(lobby);
 
         lobby.getHeartbeatHandler().registerNoHeartbeat(player, this);
-        return player;
+        return new JoinedLobbyResponse(player, lobby);
     }
 
     public Lobby findOccupiedLobbyOrThrow(String lobbyCode) throws LobbyNotFoundException {
@@ -91,7 +93,11 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
         sendEvent(allEmitters(lobbyCode), "lobbyUpdate", players, lobbyCode);
     }
 
-    public Match createMatchForLobby(Lobby lobby, User user) {
+    public Match createMatchForLobby(Lobby lobby, User user) throws NotOwnerOfLobbyException {
+        if (!lobby.isOwner(user.getUsername())) {
+            throw new NotOwnerOfLobbyException();
+        }
+
         // random uuid could be replaced in the future to ensure uniqueness
         Match match = new Match(UUID.randomUUID());
         lobby.setMatch(match);
@@ -141,6 +147,18 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
     public record CreatedMatchResponse(String matchUUID) {
         public CreatedMatchResponse(Match match) {
             this(match.getUuid().toString());
+        }
+    }
+
+    public record JoinedLobbyResponse(CreatedPlayer createdPlayer, boolean isLobbyOwner) {
+        public JoinedLobbyResponse(Player player, Lobby lobby) {
+            this(new CreatedPlayer(player), lobby.isOwner(player.getUsername()));
+        }
+
+        private record CreatedPlayer(String username, int id, boolean isAccount) {
+            public CreatedPlayer(Player player) {
+                this(player.getUsername(), player.getId(), player.isAccount());
+            }
         }
     }
 
