@@ -7,5 +7,17 @@ version: 2
 updates:
   - package-ecosystem: "gradle" # See documentation for possible values
     directory: "/" # Location of package manifests
-    schedule:
-      interval: "daily"
+    schedule: # Interval to check for new versions
+      interval: "daily" 
+    groups: # Group several changes into one PR
+      production-dependencies:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+            # -> Major Versions remain as seperate PRs (most likely to need adjustments)
