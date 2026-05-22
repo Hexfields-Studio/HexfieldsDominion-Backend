@@ -1,7 +1,7 @@
 services:
   db:
     container_name: hexfields-db
-    image: postgres:15
+    image: postgres:17
     environment:
       POSTGRES_DB: ${postgres_db}
       POSTGRES_USER: ${postgres_user}

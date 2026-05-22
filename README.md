@@ -4,5 +4,8 @@
 ###### Build and Deploy
 `docker compose up --build`
 
+> [!WARNING]
+> Don't forget the .env!
+
 ###### Cleanup
 `docker compose down -v`
