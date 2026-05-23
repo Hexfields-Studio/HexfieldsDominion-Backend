@@ -119,10 +119,10 @@ class AccountControllerTest {
             authUtils.when(AuthUtils::getAuthenticatedUser).thenReturn(new User());
             when(sseTokenService.createToken(any())).thenReturn(createdToken);
 
-            ResponseEntity<@NonNull String> response = accountController.sseToken();
+            ResponseEntity<@NonNull String> responseEntity = accountController.sseToken();
 
-            assertEquals(HttpServletResponse.SC_OK, response.getStatusCode().value());
-            assertEquals(createdToken, response.getBody());
+            assertEquals(HttpServletResponse.SC_OK, responseEntity.getStatusCode().value());
+            assertEquals(createdToken, responseEntity.getBody());
         }
     }
 
