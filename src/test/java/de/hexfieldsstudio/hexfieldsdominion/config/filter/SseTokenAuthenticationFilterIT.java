@@ -26,7 +26,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-public class SseTokenAuthenticationFilterIT {
+class SseTokenAuthenticationFilterIT {
 
     @Autowired
     private SseTokenAuthenticationFilter filter;
@@ -49,7 +49,7 @@ public class SseTokenAuthenticationFilterIT {
     private User user;
 
     @BeforeEach
-    public void setupEach() {
+    void setupEach() {
         user = User.builder()
                 .username("testuser")
                 .role(Role.GUEST)
@@ -59,7 +59,7 @@ public class SseTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterSuccess() throws ServletException, IOException {
+    void testFilterSuccess() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         allUserRepository.save(user);
@@ -80,7 +80,7 @@ public class SseTokenAuthenticationFilterIT {
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"", "xyz=x"})
-    public void testFilterFailMissingQueryParam(String query) throws ServletException, IOException {
+    void testFilterFailMissingQueryParam(String query) throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         HttpServletRequest request = this.createRequestWithQuery(query);
@@ -93,7 +93,7 @@ public class SseTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailAlreadyAuthenticated() throws ServletException, IOException {
+    void testFilterFailAlreadyAuthenticated() throws ServletException, IOException {
         Authentication authentication = new UsernamePasswordAuthenticationToken(user, "cred");
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -109,7 +109,7 @@ public class SseTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailProvidedTokenInvalid() throws ServletException, IOException, InterruptedException {
+    void testFilterFailProvidedTokenInvalid() throws ServletException, IOException, InterruptedException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         allUserRepository.save(user);
@@ -129,7 +129,7 @@ public class SseTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailUnknownUser() throws ServletException, IOException {
+    void testFilterFailUnknownUser() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         String createdToken = sseTokenService.createToken(user);
@@ -144,7 +144,7 @@ public class SseTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailNoValidTokenStoredForUser() throws ServletException, IOException {
+    void testFilterFailNoValidTokenStoredForUser() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         allUserRepository.save(user);
@@ -161,7 +161,7 @@ public class SseTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailProvidedTokenNotEqualsStored() throws ServletException, IOException {
+    void testFilterFailProvidedTokenNotEqualsStored() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         allUserRepository.save(user);

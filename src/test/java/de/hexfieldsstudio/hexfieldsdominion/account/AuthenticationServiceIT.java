@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-public class AuthenticationServiceIT {
+class AuthenticationServiceIT {
 
     @Autowired
     private AuthenticationService authenticationService;
@@ -58,12 +58,12 @@ public class AuthenticationServiceIT {
     private CookieService cookieService;
 
     @BeforeEach
-    public void setupEach() {
+    void setupEach() {
         allUserRepository.deleteAll();
     }
 
     @Test
-    public void testGuest() {
+    void testGuest() {
         AuthenticationResult result = authenticationService.guest();
 
         AuthenticationResponse successResponse = this.assertSuccessResponse(result);
@@ -79,7 +79,7 @@ public class AuthenticationServiceIT {
     }
 
     @Test
-    public void testRegisterSuccess() {
+    void testRegisterSuccess() {
         RegisterDTO registerDTO = new RegisterDTO("testuser", "somePw");
 
         AuthenticationResult result = authenticationService.register(registerDTO);
@@ -105,7 +105,7 @@ public class AuthenticationServiceIT {
             "validName,inv>lidPw",
             "inv<lidName,inv>lidPw"
     })
-    public void testRegisterFailInvalidCredentials(String username, String password) {
+    void testRegisterFailInvalidCredentials(String username, String password) {
         RegisterDTO registerDTO = new RegisterDTO(username, password);
 
         assertThrows(InvalidCharactersException.class, () -> authenticationService.register(registerDTO));
@@ -114,7 +114,7 @@ public class AuthenticationServiceIT {
     }
 
     @Test
-    public void testRegisterFailUserAlreadyExists() {
+    void testRegisterFailUserAlreadyExists() {
         RegisterDTO registerDTO = new RegisterDTO("testuser", "somePw");
         authenticationService.register(registerDTO);
 
@@ -122,7 +122,7 @@ public class AuthenticationServiceIT {
     }
 
     @Test
-    public void testLoginSuccess() {
+    void testLoginSuccess() {
         String username = "testuser";
         String password = "somePw";
 
@@ -148,14 +148,14 @@ public class AuthenticationServiceIT {
     }
 
     @Test
-    public void testLoginFailUnknownUser() {
+    void testLoginFailUnknownUser() {
         LoginDTO loginDTO = new LoginDTO("testuser", "testpw");
 
         assertThrows(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
     }
 
     @Test
-    public void testLoginFailInvalidPassword() {
+    void testLoginFailInvalidPassword() {
         String username = "testuser";
         String password = "somePw";
 
@@ -174,7 +174,7 @@ public class AuthenticationServiceIT {
 
     @ParameterizedTest
     @ArgumentsSource(RolesProvider.class)
-    public void testRefreshSuccess(Role role) {
+    void testRefreshSuccess(Role role) {
         User user = User.builder()
                 .username("testuser")
                 .role(role)
@@ -200,7 +200,7 @@ public class AuthenticationServiceIT {
     }
 
     @Test
-    public void testRefreshFailInvalidTokenJwt() {
+    void testRefreshFailInvalidTokenJwt() {
         Optional<AuthenticationResult> resultOptional = authenticationService.refresh("noJwt");
 
         assertFalse(resultOptional.isPresent());
@@ -208,7 +208,7 @@ public class AuthenticationServiceIT {
 
     @ParameterizedTest
     @ArgumentsSource(RolesProvider.class)
-    public void testRefreshFailUnknownUser(Role role) {
+    void testRefreshFailUnknownUser(Role role) {
         User user = User.builder()
                 .username("testuser")
                 .role(role)
@@ -223,7 +223,7 @@ public class AuthenticationServiceIT {
 
     @ParameterizedTest
     @ArgumentsSource(RolesProvider.class)
-    public void testRefreshFailInvalidTokenForUser(Role role) {
+    void testRefreshFailInvalidTokenForUser(Role role) {
         User user = User.builder()
                 .username("testuser")
                 .role(role)
@@ -242,7 +242,7 @@ public class AuthenticationServiceIT {
     }
 
     @Test
-    public void testLogoutNoOldToken() {
+    void testLogoutNoOldToken() {
         Optional<AuthenticationResult> authenticationResultOptional = authenticationService.logout(null);
 
         assertTrue(authenticationResultOptional.isPresent());
@@ -251,7 +251,7 @@ public class AuthenticationServiceIT {
 
     @ParameterizedTest
     @ArgumentsSource(RolesProvider.class)
-    public void testLogoutWithOldToken(Role role) {
+    void testLogoutWithOldToken(Role role) {
         User user = User.builder()
                 .username("testuser")
                 .role(role)
@@ -272,7 +272,7 @@ public class AuthenticationServiceIT {
 
     @ParameterizedTest
     @ArgumentsSource(RolesProvider.class)
-    public void testLogoutFailUnknownUser(Role role) {
+    void testLogoutFailUnknownUser(Role role) {
         User user = User.builder()
                 .username("testuser")
                 .role(role)

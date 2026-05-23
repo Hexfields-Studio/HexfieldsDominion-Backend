@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AllUserRepositoryTest {
+class AllUserRepositoryTest {
 
     @InjectMocks
     private AllUserRepository allUserRepository;
@@ -28,7 +28,7 @@ public class AllUserRepositoryTest {
     private User accountUser;
 
     @BeforeEach
-    public void setupEach() {
+    void setupEach() {
         guestUser = User.builder()
                 .username("testuser")
                 .role(Role.GUEST)
@@ -41,7 +41,7 @@ public class AllUserRepositoryTest {
     }
 
     @Test
-    public void testSaveGuest() {
+    void testSaveGuest() {
         allUserRepository.save(guestUser);
 
         verify(guestUserRepository).save(guestUser);
@@ -49,7 +49,7 @@ public class AllUserRepositoryTest {
     }
 
     @Test
-    public void testSaveAccount() {
+    void testSaveAccount() {
         allUserRepository.save(accountUser);
 
         verify(accountUserRepository).save(accountUser);
@@ -57,7 +57,7 @@ public class AllUserRepositoryTest {
     }
 
     @Test
-    public void testFindByUsernameGuest() {
+    void testFindByUsernameGuest() {
         when(guestUserRepository.findByUsername(guestUser.getUsername())).thenReturn(Optional.of(guestUser));
 
         Optional<User> userOptional = allUserRepository.findByUsername(guestUser.getUsername());
@@ -67,7 +67,7 @@ public class AllUserRepositoryTest {
     }
 
     @Test
-    public void testFindByUsernameAccount() {
+    void testFindByUsernameAccount() {
         when(accountUserRepository.findByUsername(accountUser.getUsername())).thenReturn(Optional.of(accountUser));
 
         Optional<User> userOptional = allUserRepository.findByUsername(accountUser.getUsername());
@@ -77,7 +77,7 @@ public class AllUserRepositoryTest {
     }
 
     @Test
-    public void testFindByUsernameIgnoreCaseGuest() {
+    void testFindByUsernameIgnoreCaseGuest() {
         when(guestUserRepository.findByUsernameIgnoreCase(guestUser.getUsername())).thenReturn(Optional.of(guestUser));
 
         Optional<User> userOptional = allUserRepository.findByUsernameIgnoreCase(guestUser.getUsername());
@@ -87,7 +87,7 @@ public class AllUserRepositoryTest {
     }
 
     @Test
-    public void testFindByUsernameIgnoreCaseAccount() {
+    void testFindByUsernameIgnoreCaseAccount() {
         when(accountUserRepository.findByUsernameIgnoreCase(accountUser.getUsername())).thenReturn(Optional.of(accountUser));
 
         Optional<User> userOptional = allUserRepository.findByUsernameIgnoreCase(accountUser.getUsername());
@@ -97,7 +97,7 @@ public class AllUserRepositoryTest {
     }
 
     @Test
-    public void testFindByUsernameUnknownUser() {
+    void testFindByUsernameUnknownUser() {
         when(guestUserRepository.findByUsername(anyString())).thenReturn(Optional.empty());
         when(accountUserRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
@@ -105,12 +105,12 @@ public class AllUserRepositoryTest {
     }
 
     @Test
-    public void testFindByUsernameIgnoreCaseUnknownUser() {
+    void testFindByUsernameIgnoreCaseUnknownUser() {
         assertFalse(allUserRepository.findByUsername("someUser").isPresent());
     }
 
     @Test
-    public void testDeleteAll() {
+    void testDeleteAll() {
         allUserRepository.save(guestUser);
         allUserRepository.save(accountUser);
 

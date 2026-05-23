@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class AccessTokenAuthenticationFilterTest {
+class AccessTokenAuthenticationFilterTest {
 
     @InjectMocks
     private AccessTokenAuthenticationFilter accessTokenAuthenticationFilter;
@@ -26,7 +26,7 @@ public class AccessTokenAuthenticationFilterTest {
             "/auth/refresh",
             "/lobbies/xyz/events"
     })
-    public void testShouldNotFilter(String path) {
+    void testShouldNotFilter(String path) {
         when(request.getRequestURI()).thenReturn(path);
 
         assertTrue(accessTokenAuthenticationFilter.shouldNotFilter(request));
@@ -38,7 +38,7 @@ public class AccessTokenAuthenticationFilterTest {
             "lobbies/code",
             "/"
     })
-    public void testShouldFilter(String path) {
+    void testShouldFilter(String path) {
         when(request.getRequestURI()).thenReturn(path);
 
         assertFalse(accessTokenAuthenticationFilter.shouldNotFilter(request));

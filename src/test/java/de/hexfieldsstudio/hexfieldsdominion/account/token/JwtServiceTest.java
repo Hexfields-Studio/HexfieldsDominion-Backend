@@ -19,7 +19,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-public class JwtServiceTest {
+class JwtServiceTest {
 
     @Value("${app.jwt.secretKey}")
     private String SECRET_KEY;
@@ -28,7 +28,7 @@ public class JwtServiceTest {
     private JwtService jwtService;
 
     @Test
-    public void testExtractClaims() {
+    void testExtractClaims() {
         final long currentMillis = System.currentTimeMillis();
         final Date issuedAt = new Date(currentMillis);
         final Date expiration = new Date(currentMillis + 5000);
@@ -48,7 +48,7 @@ public class JwtServiceTest {
     }
 
     @Test
-    public void testGenerateToken() {
+    void testGenerateToken() {
         User user = User.builder()
                 .username("testuser")
                 .build();
@@ -64,7 +64,7 @@ public class JwtServiceTest {
     }
 
     @Test
-    public void testGenerateTokenExtraClaims() {
+    void testGenerateTokenExtraClaims() {
         User user = User.builder()
                 .username("testuser")
                 .build();
@@ -83,7 +83,7 @@ public class JwtServiceTest {
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"", "xyz"})
-    public void testIsTokenValid(String tokenInvalidNoJwt) throws InterruptedException {
+    void testIsTokenValid(String tokenInvalidNoJwt) throws InterruptedException {
         User user = User.builder()
                 .username("testuser")
                 .build();

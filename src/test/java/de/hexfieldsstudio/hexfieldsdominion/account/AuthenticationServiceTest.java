@@ -27,7 +27,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class AuthenticationServiceTest {
+class AuthenticationServiceTest {
 
     @InjectMocks
     private AuthenticationService authenticationService;
@@ -48,7 +48,7 @@ public class AuthenticationServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    public void testGuest() {
+    void testGuest() {
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
         when(jwtService.generateToken(isA(User.class), anyInt())).thenReturn("testToken");
         when(cookieService.createRefreshTokenCookie(isA(User.class))).thenReturn(new Cookie("test", "value"));
@@ -59,7 +59,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
-    public void testRegisterSuccess() {
+    void testRegisterSuccess() {
         RegisterDTO registerDTO = new RegisterDTO("testuser", "somePw");
 
         when(jwtService.generateToken(isA(User.class), anyInt())).thenReturn("testToken");
@@ -77,14 +77,14 @@ public class AuthenticationServiceTest {
             "validName,inv>lidPw",
             "inv<lidName,inv>lidPw"
     })
-    public void testRegisterFailInvalidCharacters(String username, String password) {
+    void testRegisterFailInvalidCharacters(String username, String password) {
         RegisterDTO registerDTO = new RegisterDTO(username, password);
 
         assertThrows(InvalidCharactersException.class, () -> authenticationService.register(registerDTO));
     }
 
     @Test
-    public void testRegisterFailUserAlreadyExists() {
+    void testRegisterFailUserAlreadyExists() {
         String username = "testuser";
         String password = "somePw";
 
@@ -103,7 +103,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
-    public void testLoginSuccess() {
+    void testLoginSuccess() {
         String username = "testuser";
         String password = "somePw";
 
@@ -127,7 +127,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
-    public void testLoginFailUnknownUser() {
+    void testLoginFailUnknownUser() {
         LoginDTO loginDTO = new LoginDTO("testuser", "testpw");
 
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
@@ -136,7 +136,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
-    public void testLoginFailInvalidPassword() {
+    void testLoginFailInvalidPassword() {
         String username = "testuser";
         String password = "somePw";
 
@@ -156,7 +156,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
-    public void testRefreshSuccess() {
+    void testRefreshSuccess() {
         User user = User.builder()
                 .username("testuser")
                 .build();
@@ -175,7 +175,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
-    public void testRefreshFailInvalidTokenJwt() {
+    void testRefreshFailInvalidTokenJwt() {
         when(jwtService.isTokenValid(anyString())).thenReturn(false);
 
         Optional<AuthenticationResult> resultOptional = authenticationService.refresh("someToken");
@@ -184,7 +184,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
-    public void testRefreshFailUnknownUser() {
+    void testRefreshFailUnknownUser() {
         when(jwtService.isTokenValid(anyString())).thenReturn(true);
         when(jwtService.extractUsername(anyString())).thenReturn("testuser");
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
@@ -195,7 +195,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
-    public void testRefreshFailInvalidTokenForUser() {
+    void testRefreshFailInvalidTokenForUser() {
         User user = User.builder()
                 .username("testuser")
                 .build();
@@ -211,7 +211,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
-    public void testLogoutNoOldToken() {
+    void testLogoutNoOldToken() {
         Cookie deleteTokenCookie = new Cookie("token", "");
 
         when(cookieService.createDeleteRefreshTokenCookie()).thenReturn(deleteTokenCookie);
@@ -225,7 +225,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
-    public void testLogoutWithOldToken() {
+    void testLogoutWithOldToken() {
         Cookie deleteTokenCookie = new Cookie("token", "");
 
         User user = User.builder()
@@ -245,7 +245,7 @@ public class AuthenticationServiceTest {
     }
 
     @Test
-    public void testLogoutFailUnknownUser() {
+    void testLogoutFailUnknownUser() {
         when(jwtService.extractUsername(anyString())).thenReturn("testuser");
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 

@@ -25,14 +25,14 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
-public class ControllerExceptionHandlerTest {
+class ControllerExceptionHandlerTest {
 
     @InjectMocks
     private ControllerExceptionHandler controllerExceptionHandler;
 
     @ParameterizedTest
     @ArgumentsSource(NotFoundExceptionsProvider.class)
-    public void testHandleNotFound(Exception exception) {
+    void testHandleNotFound(Exception exception) {
         ResponseEntity<ControllerExceptionHandler.@NonNull ErrorResponse> response = controllerExceptionHandler.handleNotFound(exception);
 
         assertEquals(HttpServletResponse.SC_NOT_FOUND, response.getStatusCode().value());
@@ -40,7 +40,7 @@ public class ControllerExceptionHandlerTest {
 
     @ParameterizedTest
     @ArgumentsSource(ForbiddenExceptionsProvider.class)
-    public void testHandleForbidden(Exception exception) {
+    void testHandleForbidden(Exception exception) {
         ResponseEntity<ControllerExceptionHandler.@NonNull ErrorResponse> response = controllerExceptionHandler.handleForbidden(exception);
 
         assertEquals(HttpServletResponse.SC_FORBIDDEN, response.getStatusCode().value());
@@ -48,7 +48,7 @@ public class ControllerExceptionHandlerTest {
 
     @ParameterizedTest
     @ArgumentsSource(BadRequestExceptionsProvider.class)
-    public void testHandleBadRequest(Exception exception) {
+    void testHandleBadRequest(Exception exception) {
         ResponseEntity<ControllerExceptionHandler.@NonNull ErrorResponse> response = controllerExceptionHandler.handleBadRequest(exception);
 
         assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatusCode().value());

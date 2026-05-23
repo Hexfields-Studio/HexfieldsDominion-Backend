@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AccountControllerTest {
+class AccountControllerTest {
 
     @InjectMocks
     private AccountController accountController;
@@ -37,7 +37,7 @@ public class AccountControllerTest {
     private HttpServletResponse response;
 
     @Test
-    public void testGuest() {
+    void testGuest() {
         this.testAuthSuccess(authenticationResult -> {
             when(authenticationService.guest()).thenReturn(authenticationResult);
 
@@ -46,7 +46,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void testRegister() {
+    void testRegister() {
         this.testAuthSuccess(authenticationResult -> {
             RegisterDTO registerDTO = new RegisterDTO("testuser", "pw");
 
@@ -57,7 +57,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void testLogin() {
+    void testLogin() {
         this.testAuthSuccess(authenticationResult -> {
             LoginDTO loginDTO = new LoginDTO("testuser", "pw");
 
@@ -68,7 +68,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void testRefreshSuccess() {
+    void testRefreshSuccess() {
         this.testAuthSuccess(authenticationResult -> {
             when(authenticationService.refresh(anyString())).thenReturn(Optional.of(authenticationResult));
 
@@ -77,7 +77,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void testRefreshFailInvalidToken() {
+    void testRefreshFailInvalidToken() {
         when(authenticationService.refresh(anyString())).thenReturn(Optional.empty());
 
         ResponseEntity<@NonNull AuthenticationResponse> responseEntity = accountController.refresh("oldToken", response);
@@ -87,7 +87,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void testLogout() {
+    void testLogout() {
         AuthenticationResult authenticationResult = AuthenticationResult.builder()
                 .refreshTokenCookie(new Cookie("logoutCookie", ""))
                 .build();
@@ -100,7 +100,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void testLogoutUnknownUser() {
+    void testLogoutUnknownUser() {
         AuthenticationResult authenticationResult = AuthenticationResult.builder()
                 .refreshTokenCookie(new Cookie("logoutCookie", ""))
                 .build();
@@ -112,7 +112,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void testSseToken() {
+    void testSseToken() {
         String createdToken = "someToken";
 
         try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {

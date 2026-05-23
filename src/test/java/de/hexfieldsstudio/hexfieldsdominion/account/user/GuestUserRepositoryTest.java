@@ -9,13 +9,13 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class GuestUserRepositoryTest {
+class GuestUserRepositoryTest {
 
     private GuestUserRepository guestUserRepository;
     private User user;
 
     @BeforeEach
-    public void setupEach() {
+    void setupEach() {
         guestUserRepository = new GuestUserRepository();
         user = User.builder()
                 .username("testuser")
@@ -23,7 +23,7 @@ public class GuestUserRepositoryTest {
     }
 
     @Test
-    public void testSave() {
+    void testSave() {
         guestUserRepository.save(user);
 
         Optional<User> userOptional = guestUserRepository.findByUsername(user.getUsername());
@@ -33,7 +33,7 @@ public class GuestUserRepositoryTest {
     }
 
     @Test
-    public void testFindByUsername() {
+    void testFindByUsername() {
         guestUserRepository.save(user);
 
         Optional<User> optionalUserValid = guestUserRepository.findByUsername(user.getUsername());
@@ -46,7 +46,7 @@ public class GuestUserRepositoryTest {
     }
 
     @Test
-    public void testFindByUsernameIgnoreCase() {
+    void testFindByUsernameIgnoreCase() {
         guestUserRepository.save(user);
 
         Optional<User> optionalUserValidUppercase = guestUserRepository.findByUsernameIgnoreCase(user.getUsername().toUpperCase());
@@ -66,7 +66,7 @@ public class GuestUserRepositoryTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testDeleteAll() throws NoSuchFieldException, IllegalAccessException {
+    void testDeleteAll() throws NoSuchFieldException, IllegalAccessException {
         guestUserRepository.save(user);
         Field field = GuestUserRepository.class.getDeclaredField("guestUsers");
         field.setAccessible(true);
