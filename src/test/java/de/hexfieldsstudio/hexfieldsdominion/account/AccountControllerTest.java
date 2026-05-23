@@ -100,6 +100,18 @@ public class AccountControllerTest {
     }
 
     @Test
+    public void testLogoutUnknownUser() {
+        AuthenticationResult authenticationResult = AuthenticationResult.builder()
+                .refreshTokenCookie(new Cookie("logoutCookie", ""))
+                .build();
+
+        when(authenticationService.logout(any())).thenReturn(Optional.empty());
+        accountController.logout(null, response);
+
+        verify(response, never()).addCookie(authenticationResult.refreshTokenCookie());
+    }
+
+    @Test
     public void testSseToken() {
         String createdToken = "someToken";
 
