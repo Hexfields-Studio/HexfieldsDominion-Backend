@@ -1,3 +1,3 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
-public record Resource(String name){}
+public record AxialPosition(int q, int r) {}

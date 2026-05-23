@@ -6,7 +6,6 @@ import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.util.Pair;
 
 
 public class Match {
@@ -97,12 +96,12 @@ public class Match {
             int r2 = Math.min(boardRadius - 1, -q + boardRadius - 1);
             for (int r = r1; r <= r2; r++) {
                 if (q == 0 && r == 0) {
-                    fields.add(new Field(Pair.of(q, r), 7, new Resource(ResourceType.DUNES.toString())));
+                    fields.add(new Field(new AxialPosition(q, r), 7, new Resource(ResourceType.DUNES.toString())));
                     continue;
                 }
                 ResourceType type = availableResourceTypes.removeFirst();
                 int numberChip = numberChips.removeFirst();
-                fields.add(new Field(Pair.of(q, r), numberChip, new Resource(type.toString())));
+                fields.add(new Field(new AxialPosition(q, r), numberChip, new Resource(type.toString())));
             }
         }
 
