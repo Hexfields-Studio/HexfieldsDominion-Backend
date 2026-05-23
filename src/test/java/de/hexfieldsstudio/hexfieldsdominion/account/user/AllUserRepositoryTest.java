@@ -105,12 +105,12 @@ class AllUserRepositoryTest {
     }
 
     @Test
-    public void testFindByUsernameIgnoreCaseUnknownUser() {
+    void testFindByUsernameIgnoreCaseUnknownUser() {
         assertFalse(allUserRepository.findByUsername("someUser").isPresent());
     }
 
     @Test
-    public void testDeleteAll() {
+    void testDeleteAll() {
         allUserRepository.save(guestUser);
         allUserRepository.save(accountUser);
 
