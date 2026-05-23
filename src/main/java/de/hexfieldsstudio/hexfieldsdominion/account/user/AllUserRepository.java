@@ -27,6 +27,15 @@ public class AllUserRepository implements UserRepository {
         return accountUserRepository.findByUsername(username);
     }
 
+    @Override
+    public Optional<User> findByUsernameIgnoreCase(String username) {
+        Optional<User> optionalGuest = guestUserRepository.findByUsernameIgnoreCase(username);
+        if (optionalGuest.isPresent()) {
+            return optionalGuest;
+        }
+        return accountUserRepository.findByUsernameIgnoreCase(username);
+    }
+
     private UserRepository getRepositoryByUser(User user) {
         return (user.getRole() == Role.GUEST) ? guestUserRepository : accountUserRepository;
     }

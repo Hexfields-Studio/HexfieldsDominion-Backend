@@ -2,13 +2,15 @@ package de.hexfieldsstudio.hexfieldsdominion.account;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.dto.LoginDTO;
 import de.hexfieldsstudio.hexfieldsdominion.account.dto.RegisterDTO;
+import de.hexfieldsstudio.hexfieldsdominion.account.error.InvalidCharactersException;
+import de.hexfieldsstudio.hexfieldsdominion.account.error.InvalidCredentialsException;
+import de.hexfieldsstudio.hexfieldsdominion.account.error.UserAlreadyExistsException;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.CookieService;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.JwtService;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.RefreshTokensService;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.AllUserRepository;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -76,17 +77,29 @@ public class AuthenticationServiceTest {
             "validName,inv>lidPw",
             "inv<lidName,inv>lidPw"
     })
-    public void testRegisterFailInvalidCredentials(String username, String password) {
+    public void testRegisterFailInvalidCharacters(String username, String password) {
         RegisterDTO registerDTO = new RegisterDTO(username, password);
 
-        AuthenticationResult authenticationResult = authenticationService.register(registerDTO);
-        AuthenticationResponse response = authenticationResult.authenticationResponse();
-        Cookie refreshCookie = authenticationResult.refreshTokenCookie();
+        assertThrows(InvalidCharactersException.class, () -> authenticationService.register(registerDTO));
+    }
 
-        assertInstanceOf(ErrorAuthenticationResponse.class, response);
-        assertEquals("Invalid credentials", ((ErrorAuthenticationResponse) response).errorMessage());
-        assertEquals(HttpServletResponse.SC_BAD_REQUEST, ((ErrorAuthenticationResponse) response).statusCode());
-        assertNull(refreshCookie);
+    @Test
+    public void testRegisterFailUserAlreadyExists() {
+        String username = "testuser";
+        String password = "somePw";
+
+        when(passwordEncoder.encode(password)).thenReturn(password);
+
+        User user = User.builder()
+                .username(username)
+                .password(password, passwordEncoder)
+                .build();
+
+        RegisterDTO registerDTO = new RegisterDTO("testuser", "somePw");
+
+        when(userRepository.findByUsernameIgnoreCase(username)).thenReturn(Optional.of(user));
+
+        assertThrows(UserAlreadyExistsException.class, () -> authenticationService.register(registerDTO));
     }
 
     @Test
@@ -119,7 +132,7 @@ public class AuthenticationServiceTest {
 
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> authenticationService.login(loginDTO));
+        assertThrows(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
     }
 
     @Test
@@ -136,17 +149,10 @@ public class AuthenticationServiceTest {
 
         LoginDTO loginDTO = new LoginDTO(username, "otherPw");
 
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
 
-        AuthenticationResult authenticationResult = authenticationService.login(loginDTO);
-        AuthenticationResponse response = authenticationResult.authenticationResponse();
-        Cookie refreshCookie = authenticationResult.refreshTokenCookie();
-
-        assertInstanceOf(ErrorAuthenticationResponse.class, response);
-        assertEquals("Invalid credentials", ((ErrorAuthenticationResponse) response).errorMessage());
-        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, ((ErrorAuthenticationResponse) response).statusCode());
-        assertNull(refreshCookie);
+        assertThrows(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
     }
 
     @Test
@@ -183,7 +189,9 @@ public class AuthenticationServiceTest {
         when(jwtService.extractUsername(anyString())).thenReturn("testuser");
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> authenticationService.refresh("someToken"));
+        Optional<AuthenticationResult> resultOptional = authenticationService.refresh("someToken");
+
+        assertFalse(resultOptional.isPresent());
     }
 
     @Test
@@ -208,8 +216,10 @@ public class AuthenticationServiceTest {
 
         when(cookieService.createDeleteRefreshTokenCookie()).thenReturn(deleteTokenCookie);
 
-        AuthenticationResult authenticationResult = authenticationService.logout(null);
+        Optional<AuthenticationResult> authenticationResultOptional = authenticationService.logout(null);
 
+        assertTrue(authenticationResultOptional.isPresent());
+        AuthenticationResult authenticationResult = authenticationResultOptional.get();
         assertEquals(deleteTokenCookie, authenticationResult.refreshTokenCookie());
         assertNull(authenticationResult.authenticationResponse());
     }
@@ -226,8 +236,10 @@ public class AuthenticationServiceTest {
         when(jwtService.extractUsername(anyString())).thenReturn(user.getUsername());
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
 
-        AuthenticationResult authenticationResult = authenticationService.logout("oldToken");
+        Optional<AuthenticationResult> authenticationResultOptional = authenticationService.logout("oldToken");
 
+        assertTrue(authenticationResultOptional.isPresent());
+        AuthenticationResult authenticationResult = authenticationResultOptional.get();
         assertEquals(deleteTokenCookie, authenticationResult.refreshTokenCookie());
         assertNull(authenticationResult.authenticationResponse());
     }
@@ -237,15 +249,16 @@ public class AuthenticationServiceTest {
         when(jwtService.extractUsername(anyString())).thenReturn("testuser");
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> authenticationService.logout("oldToken"));
+        Optional<AuthenticationResult> authenticationResultOptional = authenticationService.logout("oldToken");
+
+        assertFalse(authenticationResultOptional.isPresent());
     }
 
     private void assertSuccessResponse(AuthenticationResult authenticationResult) {
         AuthenticationResponse response = authenticationResult.authenticationResponse();
         Cookie refreshCookie = authenticationResult.refreshTokenCookie();
 
-        assertInstanceOf(SuccessAuthenticationResponse.class, response);
-        assertNotNull(((SuccessAuthenticationResponse) response).accessToken());
+        assertNotNull(response.accessToken());
         assertNotNull(refreshCookie);
     }
 

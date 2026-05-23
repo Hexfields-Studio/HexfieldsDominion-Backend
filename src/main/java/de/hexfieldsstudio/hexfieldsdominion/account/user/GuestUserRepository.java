@@ -26,6 +26,14 @@ public class GuestUserRepository implements UserRepository {
     }
 
     @Override
+    public Optional<User> findByUsernameIgnoreCase(String username) {
+        Optional<String> existingUsernameOptional = guestUsers.keySet().stream()
+                .filter(storedUsername -> storedUsername.equalsIgnoreCase(username))
+                .findFirst();
+        return existingUsernameOptional.map(guestUsers::get);
+    }
+
+    @Override
     public void deleteAll() {
         guestUsers.clear();
     }

@@ -46,6 +46,25 @@ public class GuestUserRepositoryTest {
     }
 
     @Test
+    public void testFindByUsernameIgnoreCase() {
+        guestUserRepository.save(user);
+
+        Optional<User> optionalUserValidUppercase = guestUserRepository.findByUsernameIgnoreCase(user.getUsername().toUpperCase());
+        Optional<User> optionalUserValidLowercase = guestUserRepository.findByUsernameIgnoreCase(user.getUsername().toLowerCase());
+        Optional<User> optionalUserValidEqual = guestUserRepository.findByUsernameIgnoreCase(user.getUsername());
+        Optional<User> optionalUserInvalid = guestUserRepository.findByUsernameIgnoreCase("otherUser");
+
+        assertTrue(optionalUserValidUppercase.isPresent());
+        assertTrue(optionalUserValidLowercase.isPresent());
+        assertTrue(optionalUserValidEqual.isPresent());
+        assertEquals(user, optionalUserValidUppercase.get());
+        assertEquals(user, optionalUserValidLowercase.get());
+        assertEquals(user, optionalUserValidEqual.get());
+
+        assertFalse(optionalUserInvalid.isPresent());
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     public void testDeleteAll() throws NoSuchFieldException, IllegalAccessException {
         guestUserRepository.save(user);

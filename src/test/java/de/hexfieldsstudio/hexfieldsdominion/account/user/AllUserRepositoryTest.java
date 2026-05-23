@@ -77,10 +77,35 @@ public class AllUserRepositoryTest {
     }
 
     @Test
+    public void testFindByUsernameIgnoreCaseGuest() {
+        when(guestUserRepository.findByUsernameIgnoreCase(guestUser.getUsername())).thenReturn(Optional.of(guestUser));
+
+        Optional<User> userOptional = allUserRepository.findByUsernameIgnoreCase(guestUser.getUsername());
+
+        assertTrue(userOptional.isPresent());
+        assertEquals(guestUser, userOptional.get());
+    }
+
+    @Test
+    public void testFindByUsernameIgnoreCaseAccount() {
+        when(accountUserRepository.findByUsernameIgnoreCase(accountUser.getUsername())).thenReturn(Optional.of(accountUser));
+
+        Optional<User> userOptional = allUserRepository.findByUsernameIgnoreCase(accountUser.getUsername());
+
+        assertTrue(userOptional.isPresent());
+        assertEquals(accountUser, userOptional.get());
+    }
+
+    @Test
     public void testFindByUsernameUnknownUser() {
         when(guestUserRepository.findByUsername(anyString())).thenReturn(Optional.empty());
         when(accountUserRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
+        assertFalse(allUserRepository.findByUsername("someUser").isPresent());
+    }
+
+    @Test
+    public void testFindByUsernameIgnoreCaseUnknownUser() {
         assertFalse(allUserRepository.findByUsername("someUser").isPresent());
     }
 

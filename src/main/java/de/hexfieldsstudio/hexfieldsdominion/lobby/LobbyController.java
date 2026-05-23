@@ -8,6 +8,7 @@ import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.dto.HeartbeatDTO;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.NotOwnerOfLobbyException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -51,13 +52,10 @@ public class LobbyController {
     }
 
     @GetMapping("/{lobbyCode}/exists")
-    public ResponseEntity<@NonNull Boolean> doesLobbyWithCodeExist(@PathVariable String lobbyCode) {
-        try {
-            lobbyManager.findOccupiedLobbyOrThrow(lobbyCode);
-            return ResponseEntity.ok(true);
-        } catch (LobbyNotFoundException e) {
-            return ResponseEntity.ok(false);
-        }
+    public void doesLobbyWithCodeExist(@PathVariable String lobbyCode, HttpServletResponse response) {
+        lobbyManager.findOccupiedLobbyOrThrow(lobbyCode);
+
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 
     @PostMapping("/{lobbyCode}/heartbeat")
