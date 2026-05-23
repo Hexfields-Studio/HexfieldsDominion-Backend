@@ -14,6 +14,7 @@ import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradeBankDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradePlayerDTO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -27,6 +28,11 @@ public class GameController {
     @GetMapping("/{gameUUID}/lobby")
     private LobbyCodeResponse lobby(@PathVariable UUID gameUUID) throws MatchNotFoundException {
         return new LobbyCodeResponse(lobbyManager.findLobbyByMatch(gameUUID));
+    }
+
+    @GetMapping("/{gameUUID}/fields")
+    public List<Field> fields(@PathVariable UUID gameUUID) throws MatchNotFoundException {
+        return lobbyManager.findLobbyByMatch(gameUUID).getMatch().getFields();
     }
 
     @GetMapping("/{gameUUID}/events")
@@ -72,5 +78,4 @@ public class GameController {
             this(lobby.getLobbyCode());
         }
     }
-
 }

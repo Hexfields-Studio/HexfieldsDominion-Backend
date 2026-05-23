@@ -1,6 +1,6 @@
 package de.hexfieldsstudio.hexfieldsdominion.game.player;
 
-import de.hexfieldsstudio.hexfieldsdominion.game.Resource;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import lombok.Getter;
 import lombok.Setter;
 import java.awt.Color;
@@ -14,6 +14,6 @@ public class PlayerRepresentation {
     private int publicId;
     private String sessionId;
     private Color color;
-    private Map<Resource, Integer> resources;
+    private Map<ResourceType, Integer> resources;
     
 }

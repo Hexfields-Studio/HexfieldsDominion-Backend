@@ -11,15 +11,15 @@ import lombok.Setter;
 public class Match {
 
     private List<PlayerRepresentation> players;
+    private final int boardRadius;
     @Getter
-    private List<Field> fields;
+    private final List<Field> fields;
     private List<Structure> structures;
     @Getter
     private final UUID uuid;
     @Getter
     @Setter
     private Integer[] currentDiceResult = null;
-    private int boardRadius;
 
     public Match(UUID uuid, int boardRadius){
         this.uuid = uuid;
@@ -27,18 +27,18 @@ public class Match {
         this.fields = generateFields();
     }
 
-    private int calculateTotalFields(){
+    private int calculateTotalResourceFields(){
         return 3 * boardRadius * (boardRadius - 1); //excluding center field
     }
 
     private List<Integer> generateNumberChips(){
         List<Integer> numberChips = new ArrayList<>(List.of(2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12));
-        int totalFields = calculateTotalFields();
+        int totalFields = calculateTotalResourceFields();
 
-        for (int i = numberChips.size(); i < totalFields; i++){
-            int randomChip = (int) (Math.random() * 11) + 2;
-            if(randomChip == 7) randomChip = numberChips.get((int) (Math.random() * numberChips.size()));
-            numberChips.add(randomChip);
+        Random random = new Random();
+        while (numberChips.size() < totalFields) {
+            int chip = random.nextInt(11) + 2; // 2–12
+            if (chip != 7) numberChips.add(chip);
         }
 
         Collections.shuffle(numberChips);
@@ -46,37 +46,38 @@ public class Match {
     }
 
     private List<ResourceType> generateAvailableResourceTypes(Map<ResourceType, Float> ratios){
-        Map<ResourceType, Integer> availableResourceCount = new EnumMap<>(ResourceType.class);
-        int totalFields = calculateTotalFields();
+        int totalFields = calculateTotalResourceFields();
 
-        int fieldsWithResources = 0;
-        for (var entry : ratios.entrySet()) {
-            int count = (int) Math.floor(totalFields * entry.getValue());
-            availableResourceCount.put(entry.getKey(), count);
-            fieldsWithResources += count;
+        List<ResourceType> types = new ArrayList<>(ratios.keySet());
+        Map<ResourceType, Integer> counts = new EnumMap<>(ResourceType.class);
+
+        int used = 0;
+
+        // initial floor allocation
+        for (var e : ratios.entrySet()) {
+            int count = (int) Math.floor(totalFields * e.getValue());
+            counts.put(e.getKey(), count);
+            used += count;
         }
 
-        int remaining = totalFields - fieldsWithResources;
-        List<ResourceType> types = new ArrayList<>(ratios.keySet());
-
+        // distribute resources on remaining fields
         int i = 0;
-        while (remaining > 0) {
-            ResourceType type = types.get(i % types.size());
-            availableResourceCount.put(type, availableResourceCount.get(type) + 1);
-            remaining--;
+        while (used < totalFields) {
+            ResourceType t = types.get(i % types.size());
+            counts.put(t, counts.get(t) + 1);
+            used++;
             i++;
         }
 
-        List<ResourceType> availableResourceTypes = new ArrayList<>();
-
-        for (var entry : availableResourceCount.entrySet()) {
-            for (int count = 0; count < entry.getValue(); count++) {
-                availableResourceTypes.add(entry.getKey());
+        List<ResourceType> result = new ArrayList<>(totalFields);
+        for (var e : counts.entrySet()) {
+            for (int j = 0; j < e.getValue(); j++) {
+                result.add(e.getKey());
             }
         }
 
-        Collections.shuffle(availableResourceTypes);
-        return availableResourceTypes;
+        Collections.shuffle(result);
+        return result;
     }
 
     private List<Field> generateFields() {
@@ -96,12 +97,12 @@ public class Match {
             int r2 = Math.min(boardRadius - 1, -q + boardRadius - 1);
             for (int r = r1; r <= r2; r++) {
                 if (q == 0 && r == 0) {
-                    fields.add(new Field(new AxialPosition(q, r), 7, new Resource(ResourceType.DUNES.toString())));
+                    fields.add(new Field(new AxialPosition(q, r), 7, ResourceType.DUNES));
                     continue;
                 }
                 ResourceType type = availableResourceTypes.removeFirst();
                 int numberChip = numberChips.removeFirst();
-                fields.add(new Field(new AxialPosition(q, r), numberChip, new Resource(type.toString())));
+                fields.add(new Field(new AxialPosition(q, r), numberChip, type));
             }
         }
 

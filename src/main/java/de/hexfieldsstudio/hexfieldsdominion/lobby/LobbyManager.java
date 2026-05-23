@@ -4,11 +4,12 @@ import java.util.*;
 
 import de.hexfieldsstudio.hexfieldsdominion.SseSender;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
-import de.hexfieldsstudio.hexfieldsdominion.game.Field;
 import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.NotOwnerOfLobbyException;
+import de.hexfieldsstudio.hexfieldsdominion.lobby.error.RadiusTooLargeException;
+import de.hexfieldsstudio.hexfieldsdominion.lobby.error.RadiusTooSmallException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.heartbeat.NoHeartbeatListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -94,13 +95,17 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
         sendEvent(allEmitters(lobbyCode), "lobbyUpdate", players, lobbyCode);
     }
 
-    public Match createMatchForLobby(Lobby lobby, User user) throws NotOwnerOfLobbyException {
+    public Match createMatchForLobby(Lobby lobby, User user) throws NotOwnerOfLobbyException, RadiusTooSmallException, RadiusTooLargeException {
         if (!lobby.isOwner(user.getUsername())) {
             throw new NotOwnerOfLobbyException();
         }
 
+        int boardRadius = 3; // TODO: load boardRadius from configuration in the future
+        if (boardRadius < 3) throw new RadiusTooSmallException(boardRadius);
+        if (boardRadius > 6) throw new RadiusTooLargeException(boardRadius);
+
         // random uuid could be replaced in the future to ensure uniqueness
-        Match match = new Match(UUID.randomUUID(), 3);
+        Match match = new Match(UUID.randomUUID(), boardRadius);
         lobby.setMatch(match);
 
         sendEvent(allEmittersExcept(lobby.getLobbyCode(), user), "matchCreated", new CreatedMatchResponse(match), lobby.getLobbyCode());
@@ -145,9 +150,9 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
         notifyLobbyUpdate(lobby);
     }
 
-    public record CreatedMatchResponse(String matchUUID, List<Field> fields) {
+    public record CreatedMatchResponse(String matchUUID) {
         public CreatedMatchResponse(Match match) {
-            this(match.getUuid().toString(), match.getFields());
+            this(match.getUuid().toString());
         }
     }
 

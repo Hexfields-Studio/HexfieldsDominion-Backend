@@ -1,3 +1,5 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
-public record Field (AxialPosition pos, int numberChip, Resource resource) {}
+import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
+
+public record Field (AxialPosition pos, int numberChip, ResourceType resource) {}
