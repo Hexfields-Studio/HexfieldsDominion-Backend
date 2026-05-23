@@ -4,6 +4,7 @@ import java.util.*;
 
 import de.hexfieldsstudio.hexfieldsdominion.SseSender;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
+import de.hexfieldsstudio.hexfieldsdominion.game.Field;
 import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
@@ -99,7 +100,7 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
         }
 
         // random uuid could be replaced in the future to ensure uniqueness
-        Match match = new Match(UUID.randomUUID());
+        Match match = new Match(UUID.randomUUID(), 3);
         lobby.setMatch(match);
 
         sendEvent(allEmittersExcept(lobby.getLobbyCode(), user), "matchCreated", new CreatedMatchResponse(match), lobby.getLobbyCode());
@@ -144,9 +145,9 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
         notifyLobbyUpdate(lobby);
     }
 
-    public record CreatedMatchResponse(String matchUUID) {
+    public record CreatedMatchResponse(String matchUUID, List<Field> fields) {
         public CreatedMatchResponse(Match match) {
-            this(match.getUuid().toString());
+            this(match.getUuid().toString(), match.getFields());
         }
     }
 
