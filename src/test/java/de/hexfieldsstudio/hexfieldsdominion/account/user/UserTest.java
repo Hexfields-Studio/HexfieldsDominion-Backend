@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class UserTest {
+class UserTest {
 
     private static final String PASSWORD = "password";
     private static final String REFRESH_TOKEN = "refreshToken";
@@ -21,7 +21,7 @@ public class UserTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    public void testPasswordsHashedBuilder() {
+    void testPasswordsHashedBuilder() {
         when(passwordEncoder.encode(PASSWORD)).thenReturn(ENCODED_PASSWORD);
         when(passwordEncoder.encode(REFRESH_TOKEN)).thenReturn(ENCODED_REFRESH_TOKEN);
 
@@ -35,7 +35,7 @@ public class UserTest {
     }
 
     @Test
-    public void testPasswordsHashedSetter() {
+    void testPasswordsHashedSetter() {
         when(passwordEncoder.encode(PASSWORD)).thenReturn(ENCODED_PASSWORD);
         when(passwordEncoder.encode(REFRESH_TOKEN)).thenReturn(ENCODED_REFRESH_TOKEN);
 

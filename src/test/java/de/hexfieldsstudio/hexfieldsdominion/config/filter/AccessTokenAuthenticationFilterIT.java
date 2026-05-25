@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-public class AccessTokenAuthenticationFilterIT {
+class AccessTokenAuthenticationFilterIT {
 
     @Autowired
     private AccessTokenAuthenticationFilter filter;
@@ -42,12 +42,12 @@ public class AccessTokenAuthenticationFilterIT {
     private AccountUserRepository accountUserRepository;
 
     @BeforeEach
-    public void setupEach() {
+    void setupEach() {
         allUserRepository.deleteAll();
     }
 
     @Test
-    public void testFilterSuccess() throws ServletException, IOException {
+    void testFilterSuccess() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         User user = User.builder()
@@ -71,7 +71,7 @@ public class AccessTokenAuthenticationFilterIT {
     @ParameterizedTest
     @NullSource
     @ValueSource(strings = {"", "xyz"})
-    public void testFilterFailAuthHeader(String authHeaderValue) throws ServletException, IOException {
+    void testFilterFailAuthHeader(String authHeaderValue) throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         HttpServletRequest request = this.createRequestWithInvalidAuthHeader(authHeaderValue);
@@ -84,7 +84,7 @@ public class AccessTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailAlreadyAuthenticated() throws ServletException, IOException {
+    void testFilterFailAlreadyAuthenticated() throws ServletException, IOException {
         Authentication authentication = new UsernamePasswordAuthenticationToken("principal", "credentials");
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -103,7 +103,7 @@ public class AccessTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailInvalidToken() throws ServletException, IOException {
+    void testFilterFailInvalidToken() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         HttpServletRequest request = this.createRequestWithInvalidAuthHeader("Bearer invalidToken");
@@ -116,7 +116,7 @@ public class AccessTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailUnknownUser() throws ServletException, IOException {
+    void testFilterFailUnknownUser() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         User user = User.builder()

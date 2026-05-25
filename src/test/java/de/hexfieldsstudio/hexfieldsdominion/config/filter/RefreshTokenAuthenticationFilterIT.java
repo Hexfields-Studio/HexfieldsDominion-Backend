@@ -10,6 +10,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -17,6 +18,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.support.ParameterDeclarations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,7 +37,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-public class RefreshTokenAuthenticationFilterIT {
+class RefreshTokenAuthenticationFilterIT {
 
     @Autowired
     private RefreshTokenAuthenticationFilter filter;
@@ -62,12 +64,12 @@ public class RefreshTokenAuthenticationFilterIT {
     private CookieService cookieService;
 
     @BeforeEach
-    public void setupEach() {
+    void setupEach() {
         allUserRepository.deleteAll();
     }
 
     @Test
-    public void testFilterSuccess() throws ServletException, IOException {
+    void testFilterSuccess() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         User user = User.builder()
@@ -89,7 +91,7 @@ public class RefreshTokenAuthenticationFilterIT {
 
     @ParameterizedTest
     @ArgumentsSource(MissingCookieProvider.class)
-    public void testFilterFailMissingCookie(Cookie[] cookies) throws ServletException, IOException {
+    void testFilterFailMissingCookie(Cookie[] cookies) throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         this.doFilterInternalWithCookies(cookies);
@@ -98,7 +100,7 @@ public class RefreshTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailAlreadyAuthenticated() throws ServletException, IOException {
+    void testFilterFailAlreadyAuthenticated() throws ServletException, IOException {
         Authentication authentication = new UsernamePasswordAuthenticationToken("principal", "credentials");
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -118,7 +120,7 @@ public class RefreshTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailExpiredToken() throws ServletException, IOException, InterruptedException {
+    void testFilterFailExpiredToken() throws ServletException, IOException, InterruptedException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         User user = User.builder()
@@ -140,7 +142,7 @@ public class RefreshTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailUnknownUser() throws ServletException, IOException {
+    void testFilterFailUnknownUser() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         User user = User.builder()
@@ -156,7 +158,7 @@ public class RefreshTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailInvalidTokenForUser() throws ServletException, IOException {
+    void testFilterFailInvalidTokenForUser() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         User user = User.builder()
@@ -175,7 +177,7 @@ public class RefreshTokenAuthenticationFilterIT {
     }
 
     @Test
-    public void testFilterFailNoTokenStoredForUser() throws ServletException, IOException {
+    void testFilterFailNoTokenStoredForUser() throws ServletException, IOException {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         User user = User.builder()
@@ -213,7 +215,8 @@ public class RefreshTokenAuthenticationFilterIT {
 
     static class MissingCookieProvider implements ArgumentsProvider {
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+        @NullMarked
+        public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
             return Stream.of(
                     Arguments.of(null, List.of()),
                     Arguments.of(new Cookie[]{new Cookie("irrelevantName", "val")}, List.of())

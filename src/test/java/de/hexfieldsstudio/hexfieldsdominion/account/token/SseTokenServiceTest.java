@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class SseTokenServiceTest {
+class SseTokenServiceTest {
 
     private static Field fieldUsernamesTokens;
 
@@ -31,25 +31,25 @@ public class SseTokenServiceTest {
     private Map<String, String> storedUsernamesTokens;
 
     @BeforeAll
-    public static void setup() throws NoSuchFieldException {
+    static void setup() throws NoSuchFieldException {
         fieldUsernamesTokens = SseTokenService.class.getDeclaredField("usernamesTokens");
         fieldUsernamesTokens.setAccessible(true);
     }
 
     @BeforeEach
     @SuppressWarnings("unchecked")
-    public void setupEach() throws IllegalAccessException {
+    void setupEach() throws IllegalAccessException {
         storedUsernamesTokens = (Map<String, String>) fieldUsernamesTokens.get(sseTokenService);
         storedUsernamesTokens.clear();
     }
 
     @AfterAll
-    public static void afterAll() {
+    static void afterAll() {
         fieldUsernamesTokens.setAccessible(false);
     }
 
     @Test
-    public void testCreateToken() {
+    void testCreateToken() {
         User user = User.builder()
                 .username("testuser")
                 .build();
@@ -66,7 +66,7 @@ public class SseTokenServiceTest {
     }
 
     @Test
-    public void testGetValidTokenAndInvalidateSuccess() {
+    void testGetValidTokenAndInvalidateSuccess() {
         User user = User.builder()
                 .username("testuser")
                 .build();
@@ -87,7 +87,7 @@ public class SseTokenServiceTest {
     }
 
     @Test
-    public void testGetValidTokenAndInvalidateNoTokenStoredForUser() {
+    void testGetValidTokenAndInvalidateNoTokenStoredForUser() {
         User user = User.builder()
                 .username("testuser")
                 .build();
@@ -98,7 +98,7 @@ public class SseTokenServiceTest {
     }
 
     @Test
-    public void testGetValidTokenAndInvalidateStoredTokenExpired() {
+    void testGetValidTokenAndInvalidateStoredTokenExpired() {
         User user = User.builder()
                 .username("testuser")
                 .build();

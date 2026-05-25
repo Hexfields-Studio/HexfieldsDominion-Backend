@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class SseTokenAuthenticationFilterTest {
+class SseTokenAuthenticationFilterTest {
 
     @InjectMocks
     private SseTokenAuthenticationFilter sseTokenAuthenticationFilter;
@@ -30,14 +30,14 @@ public class SseTokenAuthenticationFilterTest {
             "/",
             "/auth/refresh"
     })
-    public void testShouldNotFilter(String path) {
+    void testShouldNotFilter(String path) {
         when(request.getRequestURI()).thenReturn(path);
 
         assertTrue(sseTokenAuthenticationFilter.shouldNotFilter(request));
     }
 
     @Test
-    public void testShouldFilter() {
+    void testShouldFilter() {
         String path = "/lobbies/xyz/events";
 
         when(request.getRequestURI()).thenReturn(path);

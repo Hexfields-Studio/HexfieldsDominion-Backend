@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class RefreshTokensServiceTest {
+class RefreshTokensServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -27,14 +27,14 @@ public class RefreshTokensServiceTest {
     private User user;
 
     @BeforeEach
-    public void setupEach() {
+    void setupEach() {
         user = User.builder()
                 .username("testuser")
                 .build();
     }
 
     @Test
-    public void testStore() {
+    void testStore() {
         Cookie cookie = new Cookie("refreshToken", "testvalue");
         UserRepository userRepository = new GuestUserRepository();
         userRepository.save(user);
@@ -49,7 +49,7 @@ public class RefreshTokensServiceTest {
     }
 
     @Test
-    public void testInvalidate() {
+    void testInvalidate() {
         UserRepository userRepository = new GuestUserRepository();
         userRepository.save(user);
 
@@ -61,7 +61,7 @@ public class RefreshTokensServiceTest {
     }
 
     @Test
-    public void testIsValidTrue() {
+    void testIsValidTrue() {
         String refreshToken = "testValue";
 
         when(passwordEncoder.encode(refreshToken)).thenReturn(refreshToken);
@@ -73,7 +73,7 @@ public class RefreshTokensServiceTest {
     }
 
     @Test
-    public void testIsValidFalse() {
+    void testIsValidFalse() {
         String refreshToken = "testValue";
         String otherToken = "otherValue";
 

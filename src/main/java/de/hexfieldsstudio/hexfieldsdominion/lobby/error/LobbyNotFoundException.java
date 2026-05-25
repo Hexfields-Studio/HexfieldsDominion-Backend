@@ -1,14 +1,9 @@
 package de.hexfieldsstudio.hexfieldsdominion.lobby.error;
 
-import lombok.RequiredArgsConstructor;
+import de.hexfieldsstudio.hexfieldsdominion.error.NotFoundException;
 
-@RequiredArgsConstructor
-public class LobbyNotFoundException extends Throwable {
-
-    private final String lobbyCode;
-
-    @Override
-    public String getMessage() {
-        return "error: Lobby with code %s not found.".formatted(lobbyCode);
+public class LobbyNotFoundException extends NotFoundException {
+    public LobbyNotFoundException(String lobbyCode) {
+        super("Es wurde keine Lobby mit dem Code %s gefunden.".formatted(lobbyCode));
     }
 }

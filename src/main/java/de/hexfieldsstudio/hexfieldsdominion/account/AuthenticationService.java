@@ -2,6 +2,9 @@ package de.hexfieldsstudio.hexfieldsdominion.account;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.dto.LoginDTO;
 import de.hexfieldsstudio.hexfieldsdominion.account.dto.RegisterDTO;
+import de.hexfieldsstudio.hexfieldsdominion.account.error.InvalidCharactersException;
+import de.hexfieldsstudio.hexfieldsdominion.account.error.InvalidCredentialsException;
+import de.hexfieldsstudio.hexfieldsdominion.account.error.UserAlreadyExistsException;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.RefreshTokensService;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.AllUserRepository;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.Role;
@@ -9,7 +12,6 @@ import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.CookieService;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.JwtService;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,11 +50,13 @@ public class AuthenticationService {
         return this.createNewTokensAndGetResult(user);
     }
 
-    public AuthenticationResult register(RegisterDTO request) {
+    public AuthenticationResult register(RegisterDTO request) throws InvalidCharactersException {
         if (!VALID_USERNAME_PW_PATTERN.matcher(request.username()).matches() || !VALID_USERNAME_PW_PATTERN.matcher(request.password()).matches()) {
-            return AuthenticationResult.builder()
-                    .authenticationResponse(new ErrorAuthenticationResponse("Invalid credentials"))
-                    .build();
+            throw new InvalidCharactersException();
+        }
+
+        if (userRepository.findByUsernameIgnoreCase(request.username()).isPresent()) {
+            throw new UserAlreadyExistsException();
         }
 
         User user = User.builder()
@@ -65,14 +69,12 @@ public class AuthenticationService {
         return this.createNewTokensAndGetResult(user);
     }
 
-    public AuthenticationResult login(LoginDTO request) {
+    public AuthenticationResult login(LoginDTO request) throws InvalidCredentialsException {
         User user = userRepository.findByUsername(request.username())
-                .orElseThrow();
+                .orElseThrow(InvalidCredentialsException::new);
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            return AuthenticationResult.builder()
-                    .authenticationResponse(new ErrorAuthenticationResponse("Invalid credentials", HttpServletResponse.SC_UNAUTHORIZED))
-                    .build();
+            throw new InvalidCredentialsException();
         }
 
         return this.createNewTokensAndGetResult(user);
@@ -84,8 +86,12 @@ public class AuthenticationService {
         }
 
         String username = jwtService.extractUsername(refreshToken);
-        User user = userRepository.findByUsername(username)
-                .orElseThrow();
+        Optional<User> userOptional = userRepository.findByUsername(username);
+
+        if (userOptional.isEmpty()) {
+            return Optional.empty();
+        }
+        User user = userOptional.get();
 
         if (!refreshTokensService.isValid(user, refreshToken)) {
             return Optional.empty();
@@ -94,23 +100,27 @@ public class AuthenticationService {
         return Optional.of(this.createNewTokensAndGetResult(user));
     }
 
-    public AuthenticationResult logout(String oldRefreshToken) {
+    public Optional<AuthenticationResult> logout(String oldRefreshToken) {
         if (oldRefreshToken != null) {
             String username = jwtService.extractUsername(oldRefreshToken);
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow();
+            Optional<User> userOptional = userRepository.findByUsername(username);
+
+            if (userOptional.isEmpty()) {
+                return Optional.empty();
+            }
+            User user = userOptional.get();
 
             refreshTokensService.invalidate(user, userRepository);
         }
 
-        return AuthenticationResult.builder()
+        return Optional.of(AuthenticationResult.builder()
                 .refreshTokenCookie(cookieService.createDeleteRefreshTokenCookie())
-                .build();
+                .build());
     }
 
     private AuthenticationResult createNewTokensAndGetResult(User user) {
         String accessToken = jwtService.generateToken(user, ACCESS_TOKEN_MAX_AGE);
-        AuthenticationResponse response = new SuccessAuthenticationResponse(accessToken);
+        AuthenticationResponse response = new AuthenticationResponse(accessToken);
 
         Cookie refreshTokenCookie = cookieService.createRefreshTokenCookie(user);
         refreshTokensService.store(user, refreshTokenCookie, userRepository);

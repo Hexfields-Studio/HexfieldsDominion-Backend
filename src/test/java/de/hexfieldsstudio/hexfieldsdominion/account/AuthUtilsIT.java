@@ -11,10 +11,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
-public class AuthUtilsIT {
+class AuthUtilsIT {
 
     @Test
-    public void testGetAuthenticatedUserSuccess() {
+    void testGetAuthenticatedUserSuccess() {
         User user = User.builder()
                 .username("testuser")
                 .build();
@@ -28,14 +28,14 @@ public class AuthUtilsIT {
     }
 
     @Test
-    public void testGetAuthenticatedUserFailNoAuthentication() {
+    void testGetAuthenticatedUserFailNoAuthentication() {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         assertThrows(RuntimeException.class, AuthUtils::getAuthenticatedUser);
     }
 
     @Test
-    public void testGetAuthenticatedUserFailNotUser() {
+    void testGetAuthenticatedUserFailNotUser() {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("invalid", null));
 
         assertThrows(RuntimeException.class, AuthUtils::getAuthenticatedUser);

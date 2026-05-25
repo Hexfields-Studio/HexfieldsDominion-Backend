@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 import static de.hexfieldsstudio.hexfieldsdominion.account.token.AuthTokens.REFRESH_TOKEN_NAME;
 
 @RestController
@@ -33,10 +35,6 @@ public class AccountController {
     public ResponseEntity<@NonNull AuthenticationResponse> register(@RequestBody RegisterDTO request, HttpServletResponse response) {
         AuthenticationResult result = authenticationService.register(request);
 
-        if (result.authenticationResponse() instanceof ErrorAuthenticationResponse errorResponse) {
-            return ResponseEntity.status(errorResponse.statusCode()).body(errorResponse);
-        }
-
         response.addCookie(result.refreshTokenCookie());
 
         return ResponseEntity.ok(result.authenticationResponse());
@@ -45,10 +43,6 @@ public class AccountController {
     @PostMapping("/login")
     public ResponseEntity<@NonNull AuthenticationResponse> login(@RequestBody LoginDTO request, HttpServletResponse response) {
         AuthenticationResult result = authenticationService.login(request);
-
-        if (result.authenticationResponse() instanceof ErrorAuthenticationResponse errorResponse) {
-            return ResponseEntity.status(errorResponse.statusCode()).body(errorResponse);
-        }
 
         response.addCookie(result.refreshTokenCookie());
 
@@ -67,9 +61,12 @@ public class AccountController {
 
     @PostMapping("/logout")
     public void logout(@CookieValue(name = REFRESH_TOKEN_NAME, required = false) String oldRefreshToken, HttpServletResponse response) {
-        AuthenticationResult result = authenticationService.logout(oldRefreshToken);
+        Optional<AuthenticationResult> resultOptional = authenticationService.logout(oldRefreshToken);
+        if (resultOptional.isEmpty()) {
+            return;
+        }
 
-        response.addCookie(result.refreshTokenCookie());
+        response.addCookie(resultOptional.get().refreshTokenCookie());
 
         response.setStatus(HttpServletResponse.SC_OK);
     }
