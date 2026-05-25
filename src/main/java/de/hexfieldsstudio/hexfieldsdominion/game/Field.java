@@ -1,10 +1,5 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
-import lombok.NonNull;
-import org.springframework.data.util.Pair;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 
-public class Field {
-    private Pair<@NonNull Integer, @NonNull Integer> pos;
-    private int number;
-    private Resource resource;
-}
+public record Field (AxialPosition pos, int numberChip, ResourceType resource) {}
