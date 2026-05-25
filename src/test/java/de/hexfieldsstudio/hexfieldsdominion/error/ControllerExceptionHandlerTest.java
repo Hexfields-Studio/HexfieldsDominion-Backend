@@ -3,6 +3,7 @@ package de.hexfieldsstudio.hexfieldsdominion.error;
 import de.hexfieldsstudio.hexfieldsdominion.account.error.InvalidCharactersException;
 import de.hexfieldsstudio.hexfieldsdominion.account.error.UserAlreadyExistsException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.NotOwnerOfLobbyException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -72,7 +73,8 @@ class ControllerExceptionHandlerTest {
         public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
             return Stream.of(
                     Arguments.of(new ForbiddenException("")),
-                    Arguments.of(new NotOwnerOfLobbyException())
+                    Arguments.of(new NotOwnerOfLobbyException()),
+                    Arguments.of(new NotPlayersTurnException())
             );
         }
     }

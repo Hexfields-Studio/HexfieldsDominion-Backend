@@ -2,16 +2,22 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 
 import java.security.SecureRandom;
 import java.util.*;
+import java.awt.*;
+import java.util.*;
+import java.util.List;
 
+import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
+import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import lombok.Getter;
 import lombok.Setter;
 
 
 public class Match {
 
-    private List<PlayerRepresentation> players;
+    @Getter
+    private final List<PlayerRepresentation> players;
     private final int boardRadius;
     @Getter
     private final List<Field> fields;
@@ -21,11 +27,17 @@ public class Match {
     @Getter
     @Setter
     private Integer[] currentDiceResult = null;
+    @Getter
+    private final List<Integer> playersTurnOrder;
 
-    public Match(UUID uuid, int boardRadius){
+    public Match(UUID uuid, int boardRadius, Lobby lobby){
         this.uuid = uuid;
+
         this.boardRadius = boardRadius;
         this.fields = generateFields();
+
+        this.players = this.createPlayerRepresentationsForLobby(lobby);
+        this.playersTurnOrder = this.generatePlayersTurnOrder();
     }
 
     private int calculateTotalResourceFields(){
@@ -108,6 +120,40 @@ public class Match {
         }
 
         return fields;
+    }
+
+    private List<PlayerRepresentation> createPlayerRepresentationsForLobby(Lobby lobby) {
+        return lobby.getPlayers().stream()
+                .map(PlayerRepresentation::new)
+                .toList();
+    }
+
+    private List<Integer> generatePlayersTurnOrder() {
+        List<Integer> idsList = new ArrayList<>(players.stream()
+                .map(PlayerRepresentation::getPublicId)
+                .toList());
+        Collections.shuffle(idsList);
+        return idsList;
+    }
+
+    public void nextPlayersTurn() {
+        playersTurnOrder.add(playersTurnOrder.removeFirst());
+    }
+
+    public int getPlayerCurrentTurn() {
+        return playersTurnOrder.getFirst();
+    }
+
+    public boolean isPlayersTurn(User user) {
+        return this.getPlayerForUser(user)
+                .map(player -> player.getUsername().equals(user.getUsername()))
+                .orElse(false);
+    }
+
+    private Optional<PlayerRepresentation> getPlayerForUser(User user) {
+        return players.stream()
+                .filter(player -> player.getUsername().equals(user.getUsername()))
+                .findFirst();
     }
 
 }

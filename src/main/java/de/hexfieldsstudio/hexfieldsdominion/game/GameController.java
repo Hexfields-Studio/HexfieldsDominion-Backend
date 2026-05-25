@@ -1,6 +1,7 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
@@ -41,13 +42,13 @@ public class GameController {
     }
 
     @PostMapping("/{gameUUID}/rollDice")
-    public GameManager.RollDiceResponse rollDice(@PathVariable UUID gameUUID) throws MatchNotFoundException {
+    public GameManager.RollDiceResponse rollDice(@PathVariable UUID gameUUID) throws MatchNotFoundException, NotPlayersTurnException {
         return gameManager.rollDice(gameUUID, AuthUtils.getAuthenticatedUser());
     }
 
     @PostMapping("/{gameUUID}/endTurn")
-    private void endTurn() {
-
+    public void endTurn(@PathVariable UUID gameUUID) throws MatchNotFoundException, NotPlayersTurnException {
+        gameManager.nextPlayersTurn(gameUUID, AuthUtils.getAuthenticatedUser());
     }
 
     @PostMapping("/{gameUUID}/makeMove")

@@ -3,6 +3,8 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 import de.hexfieldsstudio.hexfieldsdominion.SseSender;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
+import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,8 +21,11 @@ public class GameManager extends SseSender<UUID> {
 
     private final LobbyManager lobbyManager;
 
-    public RollDiceResponse rollDice(UUID gameUUID, User user) throws MatchNotFoundException {
+    public RollDiceResponse rollDice(UUID gameUUID, User user) throws MatchNotFoundException, NotPlayersTurnException {
         Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
+        if (!match.isPlayersTurn(user)) {
+            throw new NotPlayersTurnException();
+        }
 
         Random random = new Random();
         int value1 = random.nextInt(DICE_MAX_VALUE) + DICE_MIN_VALUE;
@@ -33,11 +38,24 @@ public class GameManager extends SseSender<UUID> {
         return response;
     }
 
-    @Override
-    public SseEmitter subscribe(UUID matchUUID, String username) {
-        SseEmitter emitter = createEmitter(username, matchUUID);
+    public void nextPlayersTurn(UUID gameUUID, User user) throws MatchNotFoundException, NotPlayersTurnException {
+        Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
+        if (!match.isPlayersTurn(user)) {
+            throw new NotPlayersTurnException();
+        }
 
-        sendEvent(emittersOfOnly(username, emitter), "initialData", "initialData", matchUUID);
+        match.nextPlayersTurn();
+
+        sendEvent(allEmitters(gameUUID), "matchData", new MatchData(match), gameUUID);
+    }
+
+    @Override
+    public SseEmitter subscribe(UUID gameUUID, String username) {
+        Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
+
+        SseEmitter emitter = createEmitter(username, gameUUID);
+
+        sendEvent(emittersOfOnly(username, emitter), "matchData", new MatchData(match), gameUUID);
 
         return emitter;
     }
@@ -50,5 +68,11 @@ public class GameManager extends SseSender<UUID> {
     }
 
     public record RollDiceResponse(int value1, int value2) {}
+
+    private record MatchData(List<PlayerRepresentation> players, int playerCurrentTurn) {
+        public MatchData(Match match) {
+            this(match.getPlayers(), match.getPlayerCurrentTurn());
+        }
+    }
 
 }
