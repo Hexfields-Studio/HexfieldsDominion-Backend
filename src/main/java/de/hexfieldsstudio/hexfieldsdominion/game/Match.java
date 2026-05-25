@@ -1,5 +1,6 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
+import java.security.SecureRandom;
 import java.util.*;
 
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
@@ -35,7 +36,7 @@ public class Match {
         List<Integer> numberChips = new ArrayList<>(List.of(2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12));
         int totalFields = calculateTotalResourceFields();
 
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
         while (numberChips.size() < totalFields) {
             int chip = random.nextInt(11) + 2; // 2–12
             if (chip != 7) numberChips.add(chip);
