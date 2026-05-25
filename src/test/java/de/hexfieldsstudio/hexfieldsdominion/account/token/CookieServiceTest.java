@@ -14,7 +14,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CookieServiceTest {
+class CookieServiceTest {
 
     @Mock
     private JwtService jwtService;
@@ -23,7 +23,7 @@ public class CookieServiceTest {
     private CookieService cookieService;
 
     @Test
-    public void testCreateRefreshCookie() {
+    void testCreateRefreshCookie() {
         User user = User.builder()
                 .username("testuser")
                 .build();
@@ -44,7 +44,7 @@ public class CookieServiceTest {
     }
 
     @Test
-    public void testCreateDeleteRefreshCookie() {
+    void testCreateDeleteRefreshCookie() {
         Cookie cookie = cookieService.createDeleteRefreshTokenCookie();
 
         assertEquals(AuthTokens.REFRESH_TOKEN_NAME, cookie.getName());

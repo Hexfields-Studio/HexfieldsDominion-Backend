@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class HeartbeatHandlerTest {
+class HeartbeatHandlerTest {
 
     private HeartbeatHandler heartbeatHandler;
 
@@ -39,7 +39,7 @@ public class HeartbeatHandlerTest {
     private Player player;
 
     @BeforeAll
-    public static void setup() throws NoSuchFieldException {
+    static void setup() throws NoSuchFieldException {
         executorsMapField = HeartbeatHandler.class.getDeclaredField("playerIdsExecutors");
         executorsMapField.setAccessible(true);
         executorListenersField = HeartbeatHandler.HeartbeatExecutor.class.getDeclaredField("listeners");
@@ -50,7 +50,7 @@ public class HeartbeatHandlerTest {
 
     @BeforeEach
     @SuppressWarnings("unchecked")
-    public void setupEach() throws IllegalAccessException {
+    void setupEach() throws IllegalAccessException {
         heartbeatHandler = new HeartbeatHandler(lobby, HEARTBEAT_CHECK_INTERVAL_SECONDS);
 
         User user = User.builder()
@@ -63,14 +63,14 @@ public class HeartbeatHandlerTest {
     }
 
     @AfterAll
-    public static void afterAll() {
+    static void afterAll() {
         executorsMapField.setAccessible(false);
         executorListenersField.setAccessible(false);
         executorCompletableFutureField.setAccessible(false);
     }
 
     @Test
-    public void testRegisterNoHeartbeatMapContainsId() throws IllegalAccessException {
+    void testRegisterNoHeartbeatMapContainsId() throws IllegalAccessException {
         HeartbeatHandler.HeartbeatExecutor heartbeatExecutor = new HeartbeatHandler.HeartbeatExecutor(player.getId(), heartbeatHandler, () -> {});
         executorMap.put(player.getId(), heartbeatExecutor);
 
@@ -84,7 +84,7 @@ public class HeartbeatHandlerTest {
     }
 
     @Test
-    public void testRegisterNoHeartbeatMapDoesNotContainId() {
+    void testRegisterNoHeartbeatMapDoesNotContainId() {
         NoHeartbeatListener listener = mock(NoHeartbeatListener.class);
 
         heartbeatHandler.registerNoHeartbeat(player, listener);
@@ -93,7 +93,7 @@ public class HeartbeatHandlerTest {
     }
 
     @Test
-    public void testResetTimerMapContainsId() throws IllegalAccessException {
+    void testResetTimerMapContainsId() throws IllegalAccessException {
         HeartbeatHandler.HeartbeatExecutor heartbeatExecutor = new HeartbeatHandler.HeartbeatExecutor(player.getId(), heartbeatHandler, () -> {});
         executorMap.put(player.getId(), heartbeatExecutor);
         CompletableFuture<Void> completableFutureBefore = this.getCompletableFuture(heartbeatExecutor);
@@ -106,7 +106,7 @@ public class HeartbeatHandlerTest {
     }
 
     @Test
-    public void testResetTimerMapDoesNotContainId() throws IllegalAccessException {
+    void testResetTimerMapDoesNotContainId() throws IllegalAccessException {
         heartbeatHandler.resetTimer(player.getId());
 
         assertTrue(executorMap.containsKey(player.getId()));

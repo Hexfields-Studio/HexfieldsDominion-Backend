@@ -6,6 +6,7 @@ import de.hexfieldsstudio.hexfieldsdominion.account.token.SseTokenService;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AccountControllerTest {
+class AccountControllerTest {
 
     @InjectMocks
     private AccountController accountController;
@@ -36,7 +37,7 @@ public class AccountControllerTest {
     private HttpServletResponse response;
 
     @Test
-    public void testGuest() {
+    void testGuest() {
         this.testAuthSuccess(authenticationResult -> {
             when(authenticationService.guest()).thenReturn(authenticationResult);
 
@@ -45,47 +46,29 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void testRegisterSuccess() {
-        this.testAuthSuccess(this.getRegisterTestFunction());
-    }
-
-    @Test
-    public void testRegisterFail() {
-        this.testAuthFail(this.getRegisterTestFunction());
-    }
-
-    private Function<AuthenticationResult, ResponseEntity<AuthenticationResponse>> getRegisterTestFunction() {
-        return authenticationResult -> {
+    void testRegister() {
+        this.testAuthSuccess(authenticationResult -> {
             RegisterDTO registerDTO = new RegisterDTO("testuser", "pw");
 
             when(authenticationService.register(registerDTO)).thenReturn(authenticationResult);
 
             return accountController.register(registerDTO, response);
-        };
+        });
     }
 
     @Test
-    public void testLoginSuccess() {
-        this.testAuthSuccess(this.getLoginTestFunction());
-    }
-
-    @Test
-    public void testLoginFail() {
-        this.testAuthFail(this.getLoginTestFunction());
-    }
-
-    private Function<AuthenticationResult, ResponseEntity<AuthenticationResponse>> getLoginTestFunction() {
-        return authenticationResult -> {
+    void testLogin() {
+        this.testAuthSuccess(authenticationResult -> {
             LoginDTO loginDTO = new LoginDTO("testuser", "pw");
 
             when(authenticationService.login(loginDTO)).thenReturn(authenticationResult);
 
             return accountController.login(loginDTO, response);
-        };
+        });
     }
 
     @Test
-    public void testRefreshSuccess() {
+    void testRefreshSuccess() {
         this.testAuthSuccess(authenticationResult -> {
             when(authenticationService.refresh(anyString())).thenReturn(Optional.of(authenticationResult));
 
@@ -94,23 +77,22 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void testRefreshFailInvalidToken() {
+    void testRefreshFailInvalidToken() {
         when(authenticationService.refresh(anyString())).thenReturn(Optional.empty());
 
-        ResponseEntity<AuthenticationResponse> responseEntity = accountController.refresh("oldToken", response);
+        ResponseEntity<@NonNull AuthenticationResponse> responseEntity = accountController.refresh("oldToken", response);
 
         assertEquals(HttpServletResponse.SC_UNAUTHORIZED, responseEntity.getStatusCode().value());
         verify(response, never()).addCookie(isA(Cookie.class));
     }
 
     @Test
-    public void testLogout() {
+    void testLogout() {
         AuthenticationResult authenticationResult = AuthenticationResult.builder()
                 .refreshTokenCookie(new Cookie("logoutCookie", ""))
                 .build();
 
-        when(authenticationService.logout(any())).thenReturn(authenticationResult);
-
+        when(authenticationService.logout(any())).thenReturn(Optional.of(authenticationResult));
         accountController.logout(null, response);
 
         verify(response).addCookie(authenticationResult.refreshTokenCookie());
@@ -118,27 +100,39 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void testSseToken() {
+    void testLogoutUnknownUser() {
+        AuthenticationResult authenticationResult = AuthenticationResult.builder()
+                .refreshTokenCookie(new Cookie("logoutCookie", ""))
+                .build();
+
+        when(authenticationService.logout(any())).thenReturn(Optional.empty());
+        accountController.logout(null, response);
+
+        verify(response, never()).addCookie(authenticationResult.refreshTokenCookie());
+    }
+
+    @Test
+    void testSseToken() {
         String createdToken = "someToken";
 
         try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
             authUtils.when(AuthUtils::getAuthenticatedUser).thenReturn(new User());
             when(sseTokenService.createToken(any())).thenReturn(createdToken);
 
-            ResponseEntity<String> response = accountController.sseToken();
+            ResponseEntity<@NonNull String> responseEntity = accountController.sseToken();
 
-            assertEquals(HttpServletResponse.SC_OK, response.getStatusCode().value());
-            assertEquals(createdToken, response.getBody());
+            assertEquals(HttpServletResponse.SC_OK, responseEntity.getStatusCode().value());
+            assertEquals(createdToken, responseEntity.getBody());
         }
     }
 
-    private void testAuthSuccess(Function<AuthenticationResult, ResponseEntity<AuthenticationResponse>> function) {
+    private void testAuthSuccess(Function<AuthenticationResult, ResponseEntity<@NonNull AuthenticationResponse>> function) {
         AuthenticationResult authenticationResult = AuthenticationResult.builder()
-                .authenticationResponse(new SuccessAuthenticationResponse("token"))
+                .authenticationResponse(new AuthenticationResponse("token"))
                 .refreshTokenCookie(new Cookie("tokenCookie", "token"))
                 .build();
 
-        ResponseEntity<AuthenticationResponse> responseEntity = function.apply(authenticationResult);
+        ResponseEntity<@NonNull AuthenticationResponse> responseEntity = function.apply(authenticationResult);
 
         assertEquals(HttpServletResponse.SC_OK, responseEntity.getStatusCode().value());
         assertEquals(authenticationResult.authenticationResponse(), responseEntity.getBody());
@@ -146,18 +140,5 @@ public class AccountControllerTest {
         verify(response).addCookie(authenticationResult.refreshTokenCookie());
     }
 
-    private void testAuthFail(Function<AuthenticationResult, ResponseEntity<AuthenticationResponse>> function) {
-        ErrorAuthenticationResponse errorResponse = new ErrorAuthenticationResponse("some error occurred");
-
-        AuthenticationResult authenticationResult = AuthenticationResult.builder()
-                .authenticationResponse(errorResponse)
-                .build();
-
-        ResponseEntity<AuthenticationResponse> responseEntity = function.apply(authenticationResult);
-
-        assertEquals(errorResponse.statusCode(), responseEntity.getStatusCode().value());
-        assertEquals(errorResponse, responseEntity.getBody());
-        verify(response, never()).addCookie(authenticationResult.refreshTokenCookie());
-    }
 
 }

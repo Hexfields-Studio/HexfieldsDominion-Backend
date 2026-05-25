@@ -2,13 +2,16 @@ package de.hexfieldsstudio.hexfieldsdominion.account;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.dto.LoginDTO;
 import de.hexfieldsstudio.hexfieldsdominion.account.dto.RegisterDTO;
+import de.hexfieldsstudio.hexfieldsdominion.account.error.InvalidCharactersException;
+import de.hexfieldsstudio.hexfieldsdominion.account.error.InvalidCredentialsException;
+import de.hexfieldsstudio.hexfieldsdominion.account.error.UserAlreadyExistsException;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.AuthTokens;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.CookieService;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.JwtService;
 import de.hexfieldsstudio.hexfieldsdominion.account.token.RefreshTokensService;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.*;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -17,18 +20,18 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.support.ParameterDeclarations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-public class AuthenticationServiceIT {
+class AuthenticationServiceIT {
 
     @Autowired
     private AuthenticationService authenticationService;
@@ -55,15 +58,15 @@ public class AuthenticationServiceIT {
     private CookieService cookieService;
 
     @BeforeEach
-    public void setupEach() {
+    void setupEach() {
         allUserRepository.deleteAll();
     }
 
     @Test
-    public void testGuest() {
+    void testGuest() {
         AuthenticationResult result = authenticationService.guest();
 
-        SuccessAuthenticationResponse successResponse = this.assertSuccessResponse(result);
+        AuthenticationResponse successResponse = this.assertSuccessResponse(result);
 
         String usernameAccessToken = jwtService.extractUsername(successResponse.accessToken());
         String usernameRefreshToken = jwtService.extractUsername(result.refreshTokenCookie().getValue());
@@ -76,14 +79,14 @@ public class AuthenticationServiceIT {
     }
 
     @Test
-    public void testRegisterSuccess() {
+    void testRegisterSuccess() {
         RegisterDTO registerDTO = new RegisterDTO("testuser", "somePw");
 
         AuthenticationResult result = authenticationService.register(registerDTO);
 
-        SuccessAuthenticationResponse successResponse = this.assertSuccessResponse(result);
+        AuthenticationResponse authenticationResponse = this.assertSuccessResponse(result);
 
-        String usernameAccessToken = jwtService.extractUsername(successResponse.accessToken());
+        String usernameAccessToken = jwtService.extractUsername(authenticationResponse.accessToken());
         String usernameRefreshToken = jwtService.extractUsername(result.refreshTokenCookie().getValue());
 
         assertEquals(usernameAccessToken, usernameRefreshToken);
@@ -102,21 +105,24 @@ public class AuthenticationServiceIT {
             "validName,inv>lidPw",
             "inv<lidName,inv>lidPw"
     })
-    public void testRegisterFailInvalidCredentials(String username, String password) {
+    void testRegisterFailInvalidCredentials(String username, String password) {
         RegisterDTO registerDTO = new RegisterDTO(username, password);
 
-        AuthenticationResult result = authenticationService.register(registerDTO);
-
-        ErrorAuthenticationResponse errorResponse = this.assertErrorResponse(result);
-
-        assertEquals("Invalid credentials", errorResponse.errorMessage());
-        assertEquals(HttpServletResponse.SC_BAD_REQUEST, errorResponse.statusCode());
+        assertThrows(InvalidCharactersException.class, () -> authenticationService.register(registerDTO));
 
         assertFalse(allUserRepository.findByUsername(username).isPresent());
     }
 
     @Test
-    public void testLoginSuccess() {
+    void testRegisterFailUserAlreadyExists() {
+        RegisterDTO registerDTO = new RegisterDTO("testuser", "somePw");
+        authenticationService.register(registerDTO);
+
+        assertThrows(UserAlreadyExistsException.class, () -> authenticationService.register(registerDTO));
+    }
+
+    @Test
+    void testLoginSuccess() {
         String username = "testuser";
         String password = "somePw";
 
@@ -132,9 +138,9 @@ public class AuthenticationServiceIT {
 
         AuthenticationResult result = authenticationService.login(loginDTO);
 
-        SuccessAuthenticationResponse successResponse = this.assertSuccessResponse(result);
+        AuthenticationResponse authenticationResponse = this.assertSuccessResponse(result);
 
-        String usernameAccessToken = jwtService.extractUsername(successResponse.accessToken());
+        String usernameAccessToken = jwtService.extractUsername(authenticationResponse.accessToken());
         String usernameRefreshToken = jwtService.extractUsername(result.refreshTokenCookie().getValue());
 
         assertEquals(usernameAccessToken, usernameRefreshToken);
@@ -142,14 +148,14 @@ public class AuthenticationServiceIT {
     }
 
     @Test
-    public void testLoginFailUnknownUser() {
+    void testLoginFailUnknownUser() {
         LoginDTO loginDTO = new LoginDTO("testuser", "testpw");
 
-        assertThrows(NoSuchElementException.class, () -> authenticationService.login(loginDTO));
+        assertThrows(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
     }
 
     @Test
-    public void testLoginFailInvalidPassword() {
+    void testLoginFailInvalidPassword() {
         String username = "testuser";
         String password = "somePw";
 
@@ -163,17 +169,12 @@ public class AuthenticationServiceIT {
 
         LoginDTO loginDTO = new LoginDTO(username, "otherPw");
 
-        AuthenticationResult result = authenticationService.login(loginDTO);
-
-        ErrorAuthenticationResponse errorResponse = this.assertErrorResponse(result);
-
-        assertEquals("Invalid credentials", errorResponse.errorMessage());
-        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, errorResponse.statusCode());
+        assertThrows(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
     }
 
     @ParameterizedTest
     @ArgumentsSource(RolesProvider.class)
-    public void testRefreshSuccess(Role role) {
+    void testRefreshSuccess(Role role) {
         User user = User.builder()
                 .username("testuser")
                 .role(role)
@@ -189,9 +190,9 @@ public class AuthenticationServiceIT {
         assertTrue(resultOptional.isPresent());
         AuthenticationResult result = resultOptional.get();
 
-        SuccessAuthenticationResponse successResponse = this.assertSuccessResponse(result);
+        AuthenticationResponse authenticationResponse = this.assertSuccessResponse(result);
 
-        String usernameAccessToken = jwtService.extractUsername(successResponse.accessToken());
+        String usernameAccessToken = jwtService.extractUsername(authenticationResponse.accessToken());
         String usernameRefreshToken = jwtService.extractUsername(result.refreshTokenCookie().getValue());
 
         assertEquals(usernameAccessToken, usernameRefreshToken);
@@ -199,7 +200,7 @@ public class AuthenticationServiceIT {
     }
 
     @Test
-    public void testRefreshFailInvalidTokenJwt() {
+    void testRefreshFailInvalidTokenJwt() {
         Optional<AuthenticationResult> resultOptional = authenticationService.refresh("noJwt");
 
         assertFalse(resultOptional.isPresent());
@@ -207,7 +208,7 @@ public class AuthenticationServiceIT {
 
     @ParameterizedTest
     @ArgumentsSource(RolesProvider.class)
-    public void testRefreshFailUnknownUser(Role role) {
+    void testRefreshFailUnknownUser(Role role) {
         User user = User.builder()
                 .username("testuser")
                 .role(role)
@@ -215,12 +216,14 @@ public class AuthenticationServiceIT {
 
         String refreshToken = cookieService.createRefreshTokenCookie(user).getValue();
 
-        assertThrows(NoSuchElementException.class, () -> authenticationService.refresh(refreshToken));
+        Optional<AuthenticationResult> resultOptional = authenticationService.refresh(refreshToken);
+
+        assertFalse(resultOptional.isPresent());
     }
 
     @ParameterizedTest
     @ArgumentsSource(RolesProvider.class)
-    public void testRefreshFailInvalidTokenForUser(Role role) {
+    void testRefreshFailInvalidTokenForUser(Role role) {
         User user = User.builder()
                 .username("testuser")
                 .role(role)
@@ -239,15 +242,16 @@ public class AuthenticationServiceIT {
     }
 
     @Test
-    public void testLogoutNoOldToken() {
-        AuthenticationResult authenticationResult = authenticationService.logout(null);
+    void testLogoutNoOldToken() {
+        Optional<AuthenticationResult> authenticationResultOptional = authenticationService.logout(null);
 
-        this.assertLogoutResultSuccess(authenticationResult);
+        assertTrue(authenticationResultOptional.isPresent());
+        this.assertLogoutResultSuccess(authenticationResultOptional.get());
     }
 
     @ParameterizedTest
     @ArgumentsSource(RolesProvider.class)
-    public void testLogoutWithOldToken(Role role) {
+    void testLogoutWithOldToken(Role role) {
         User user = User.builder()
                 .username("testuser")
                 .role(role)
@@ -258,16 +262,17 @@ public class AuthenticationServiceIT {
         user.setRefreshToken(refreshToken, passwordEncoder);
         allUserRepository.save(user);
 
-        AuthenticationResult authenticationResult = authenticationService.logout(refreshToken);
+        Optional<AuthenticationResult> authenticationResultOptional = authenticationService.logout(refreshToken);
 
-        this.assertLogoutResultSuccess(authenticationResult);
+        assertTrue(authenticationResultOptional.isPresent());
+        this.assertLogoutResultSuccess(authenticationResultOptional.get());
         assertTrue(allUserRepository.findByUsername(user.getUsername()).isPresent());
         assertNull(allUserRepository.findByUsername(user.getUsername()).get().getRefreshToken());
     }
 
     @ParameterizedTest
     @ArgumentsSource(RolesProvider.class)
-    public void testLogoutFailUnknownUser(Role role) {
+    void testLogoutFailUnknownUser(Role role) {
         User user = User.builder()
                 .username("testuser")
                 .role(role)
@@ -275,10 +280,12 @@ public class AuthenticationServiceIT {
 
         String refreshToken = cookieService.createRefreshTokenCookie(user).getValue();
 
-        assertThrows(NoSuchElementException.class, () -> authenticationService.logout(refreshToken));
+        Optional<AuthenticationResult> authenticationResultOptional = authenticationService.logout(refreshToken);
+
+        assertFalse(authenticationResultOptional.isPresent());
     }
 
-    private SuccessAuthenticationResponse assertSuccessResponse(AuthenticationResult result) {
+    private AuthenticationResponse assertSuccessResponse(AuthenticationResult result) {
         assertNotNull(result);
         assertNotNull(result.authenticationResponse());
         assertNotNull(result.refreshTokenCookie());
@@ -287,23 +294,12 @@ public class AuthenticationServiceIT {
         assertEquals(AuthTokens.REFRESH_TOKEN_NAME, result.refreshTokenCookie().getName());
         assertEquals(AuthTokens.REFRESH_TOKEN_MAX_AGE, result.refreshTokenCookie().getMaxAge());
 
-        assertInstanceOf(SuccessAuthenticationResponse.class, result.authenticationResponse());
-        SuccessAuthenticationResponse successResponse = (SuccessAuthenticationResponse) result.authenticationResponse();
+        AuthenticationResponse authenticationResponse = result.authenticationResponse();
 
-        assertNotNull(successResponse.accessToken());
-        assertTrue(jwtService.isTokenValid(successResponse.accessToken()));
+        assertNotNull(authenticationResponse.accessToken());
+        assertTrue(jwtService.isTokenValid(authenticationResponse.accessToken()));
 
-        return successResponse;
-    }
-
-    private ErrorAuthenticationResponse assertErrorResponse(AuthenticationResult result) {
-        assertNotNull(result);
-        assertNotNull(result.authenticationResponse());
-        assertNull(result.refreshTokenCookie());
-
-        assertInstanceOf(ErrorAuthenticationResponse.class, result.authenticationResponse());
-
-        return (ErrorAuthenticationResponse) result.authenticationResponse();
+        return authenticationResponse;
     }
 
     private void assertLogoutResultSuccess(AuthenticationResult authenticationResult) {
@@ -317,7 +313,8 @@ public class AuthenticationServiceIT {
 
     static class RolesProvider implements ArgumentsProvider {
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+        @NullMarked
+        public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
             return Stream.of(
                     Arguments.of(Role.GUEST),
                     Arguments.of(Role.PLAYER)

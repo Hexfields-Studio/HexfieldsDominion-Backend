@@ -1,9 +1,9 @@
 package de.hexfieldsstudio.hexfieldsdominion.lobby.error;
 
-public class NotOwnerOfLobbyException extends Throwable {
+import de.hexfieldsstudio.hexfieldsdominion.error.ForbiddenException;
 
-    @Override
-    public String getMessage() {
-        return "error: Only the owner is allowed to do that.";
+public class NotOwnerOfLobbyException extends ForbiddenException {
+    public NotOwnerOfLobbyException() {
+        super("Das kann nur der LobbyOwner tun.");
     }
 }
