@@ -4,6 +4,7 @@ import de.hexfieldsstudio.hexfieldsdominion.account.error.InvalidCharactersExcep
 import de.hexfieldsstudio.hexfieldsdominion.account.error.UserAlreadyExistsException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
+import de.hexfieldsstudio.hexfieldsdominion.lobby.error.InvalidRadiusException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.NotOwnerOfLobbyException;
 import jakarta.servlet.http.HttpServletResponse;
@@ -87,7 +88,8 @@ class ControllerExceptionHandlerTest {
                     Arguments.of(new BadRequestException("")),
                     Arguments.of(new InvalidCharactersException()),
                     Arguments.of(new InvalidCharactersException()),
-                    Arguments.of(new UserAlreadyExistsException())
+                    Arguments.of(new UserAlreadyExistsException()),
+                    Arguments.of(new InvalidRadiusException(0))
             );
         }
     }

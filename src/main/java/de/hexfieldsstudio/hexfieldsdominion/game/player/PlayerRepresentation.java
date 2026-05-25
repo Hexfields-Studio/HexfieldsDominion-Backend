@@ -16,7 +16,7 @@ public class PlayerRepresentation {
     private int publicId;
     private String sessionId;
     private Color color;
-    private final Map<ResourceType, Integer> resources = Map.of(Resource.WOOD, 2);
+    private final Map<ResourceType, Integer> resources = Map.of(ResourceType.WOOD, 2);
     private final String chosenPortrait;
 
     public PlayerRepresentation(Player player) {
