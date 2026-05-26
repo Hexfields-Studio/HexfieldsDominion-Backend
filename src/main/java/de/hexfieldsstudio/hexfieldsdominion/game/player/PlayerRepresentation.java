@@ -18,6 +18,7 @@ public class PlayerRepresentation {
     private Color color;
     private final Map<ResourceType, Integer> resources = Map.of(ResourceType.WOOD, 2);
     private final String chosenPortrait;
+    private int points = 0;
 
     public PlayerRepresentation(Player player) {
         this.player = player;
@@ -26,6 +27,10 @@ public class PlayerRepresentation {
         // temporary
         SecureRandom random = new SecureRandom();
         this.chosenPortrait = (random.nextInt(2) == 0) ? "KingMale" : "ArcherFemale";
+    }
+
+    public void addPoints(int points) {
+        this.points += points;
     }
     
 }

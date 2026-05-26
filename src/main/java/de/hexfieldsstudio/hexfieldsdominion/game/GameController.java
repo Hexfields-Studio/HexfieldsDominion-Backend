@@ -51,6 +51,12 @@ public class GameController {
         gameManager.nextPlayersTurn(gameUUID, AuthUtils.getAuthenticatedUser());
     }
 
+    // temporary, should be done when building siedlung/stadt
+    @PostMapping("/{gameUUID}/addPoint")
+    public void addPoint(@PathVariable UUID gameUUID) throws MatchNotFoundException, NotPlayersTurnException {
+        gameManager.addPoints(gameUUID, AuthUtils.getAuthenticatedUser(), 1);
+    }
+
     @PostMapping("/{gameUUID}/makeMove")
     private void playerAction(@PathVariable UUID gameUUID,
                               @RequestBody PlayerActionDTO request

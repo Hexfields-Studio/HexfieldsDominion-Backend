@@ -49,6 +49,16 @@ public class GameManager extends SseSender<UUID> {
         sendEvent(allEmitters(gameUUID), "matchData", new MatchData(match), gameUUID);
     }
 
+    public void addPoints(UUID gameUUID, User user, int points) throws MatchNotFoundException {
+        Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
+
+        match.getPlayerForUser(user).ifPresent(player -> {
+            player.addPoints(points);
+
+            sendEvent(allEmitters(gameUUID), "matchData", new MatchData(match), gameUUID);
+        });
+    }
+
     @Override
     public SseEmitter subscribe(UUID gameUUID, String username) {
         Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();

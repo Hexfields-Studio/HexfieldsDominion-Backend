@@ -150,7 +150,7 @@ public class Match {
                 .orElse(false);
     }
 
-    private Optional<PlayerRepresentation> getPlayerForUser(User user) {
+    public Optional<PlayerRepresentation> getPlayerForUser(User user) {
         return players.stream()
                 .filter(player -> player.getUsername().equals(user.getUsername()))
                 .findFirst();
