@@ -34,7 +34,7 @@ public class GameManager extends SseSender<UUID> {
         RollDiceResponse response = new RollDiceResponse(value1, value2);
         match.setCurrentDiceResult(new Integer[]{value1, value2});
 
-        sendMatchData(allEmittersExcept(gameUUID, user), match);
+        sendEvent(allEmittersExcept(gameUUID, user), "rollDice", response, gameUUID);
         return response;
     }
 
@@ -59,17 +59,13 @@ public class GameManager extends SseSender<UUID> {
         });
     }
 
-    private void sendMatchData(Map<String, SseEmitter> emitters, Match match) {
-        sendEvent(emitters, "matchData", new MatchData(match), match.getUuid());
-    }
-
     @Override
     public SseEmitter subscribe(UUID gameUUID, String username) {
         Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
 
         SseEmitter emitter = createEmitter(username, gameUUID);
 
-        sendEvent(emittersOfOnly(username, emitter), "matchData", new MatchData(match), gameUUID);
+        sendMatchData(emittersOfOnly(username, emitter), match);
 
         return emitter;
     }
@@ -79,6 +75,10 @@ public class GameManager extends SseSender<UUID> {
         try {
             lobbyManager.findLobbyByMatch(matchUUID).removePlayer(username);
         } catch (MatchNotFoundException ignored) {}
+    }
+
+    private void sendMatchData(Map<String, SseEmitter> emitters, Match match) {
+        sendEvent(emitters, "matchData", new MatchData(match), match.getUuid());
     }
 
     public record RollDiceResponse(int value1, int value2) {}
