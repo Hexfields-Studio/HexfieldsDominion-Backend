@@ -34,7 +34,7 @@ public class GameManager extends SseSender<UUID> {
         RollDiceResponse response = new RollDiceResponse(value1, value2);
         match.setCurrentDiceResult(new Integer[]{value1, value2});
 
-        sendEvent(allEmittersExcept(gameUUID, user), "rollDice", response, gameUUID);
+        sendMatchData(allEmittersExcept(gameUUID, user), match);
         return response;
     }
 
@@ -46,7 +46,7 @@ public class GameManager extends SseSender<UUID> {
 
         match.nextPlayersTurn();
 
-        sendEvent(allEmitters(gameUUID), "matchData", new MatchData(match), gameUUID);
+        sendMatchData(allEmitters(gameUUID), match);
     }
 
     public void addPoints(UUID gameUUID, User user, int points) throws MatchNotFoundException {
@@ -55,8 +55,12 @@ public class GameManager extends SseSender<UUID> {
         match.getPlayerForUser(user).ifPresent(player -> {
             player.addPoints(points);
 
-            sendEvent(allEmitters(gameUUID), "matchData", new MatchData(match), gameUUID);
+            sendMatchData(allEmitters(gameUUID), match);
         });
+    }
+
+    private void sendMatchData(Map<String, SseEmitter> emitters, Match match) {
+        sendEvent(emitters, "matchData", new MatchData(match), match.getUuid());
     }
 
     @Override
