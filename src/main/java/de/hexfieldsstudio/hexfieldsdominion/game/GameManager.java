@@ -46,7 +46,17 @@ public class GameManager extends SseSender<UUID> {
 
         match.nextPlayersTurn();
 
-        sendEvent(allEmitters(gameUUID), "matchData", new MatchData(match), gameUUID);
+        sendMatchData(allEmitters(gameUUID), match);
+    }
+
+    public void addPoints(UUID gameUUID, User user, int points) throws MatchNotFoundException {
+        Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
+
+        match.getPlayerForUser(user).ifPresent(player -> {
+            player.addPoints(points);
+
+            sendMatchData(allEmitters(gameUUID), match);
+        });
     }
 
     @Override
@@ -55,7 +65,7 @@ public class GameManager extends SseSender<UUID> {
 
         SseEmitter emitter = createEmitter(username, gameUUID);
 
-        sendEvent(emittersOfOnly(username, emitter), "matchData", new MatchData(match), gameUUID);
+        sendMatchData(emittersOfOnly(username, emitter), match);
 
         return emitter;
     }
@@ -65,6 +75,10 @@ public class GameManager extends SseSender<UUID> {
         try {
             lobbyManager.findLobbyByMatch(matchUUID).removePlayer(username);
         } catch (MatchNotFoundException ignored) {}
+    }
+
+    private void sendMatchData(Map<String, SseEmitter> emitters, Match match) {
+        sendEvent(emitters, "matchData", new MatchData(match), match.getUuid());
     }
 
     public record RollDiceResponse(int value1, int value2) {}
