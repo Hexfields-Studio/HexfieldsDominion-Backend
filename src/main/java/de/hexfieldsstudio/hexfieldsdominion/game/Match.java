@@ -32,8 +32,6 @@ public class Match {
     public Match(UUID uuid, int boardRadius, Lobby lobby){
         this.uuid = uuid;
 
-        this.boardRadius = boardRadius;
-
         Map<ResourceType, Float> ratios = Map.of(
                 ResourceType.WOOD, 0.3f,
                 ResourceType.BRICK, 0.2f,
