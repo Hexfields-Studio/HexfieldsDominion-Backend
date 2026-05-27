@@ -18,7 +18,6 @@ public class Match {
 
     @Getter
     private final List<PlayerRepresentation> players;
-    private final int boardRadius;
     @Getter
     private final List<Field> fields;
     private List<Structure> structures;
