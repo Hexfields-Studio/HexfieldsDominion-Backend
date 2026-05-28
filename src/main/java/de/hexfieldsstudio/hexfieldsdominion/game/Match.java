@@ -29,6 +29,9 @@ public class Match {
     private Integer[] currentDiceResult = null;
     @Getter
     private final List<Integer> playersTurnOrder;
+    @Setter
+    @Getter
+    private boolean rolledDiceThisTurn = false;
 
     public Match(UUID uuid, int boardRadius, Lobby lobby){
         this.uuid = uuid;
@@ -138,6 +141,7 @@ public class Match {
 
     public void nextPlayersTurn() {
         playersTurnOrder.add(playersTurnOrder.removeFirst());
+        rolledDiceThisTurn = false;
     }
 
     public int getPlayerCurrentTurn() {

@@ -2,6 +2,7 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 
 import de.hexfieldsstudio.hexfieldsdominion.SseSender;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
+import de.hexfieldsstudio.hexfieldsdominion.error.ForbiddenException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
@@ -27,6 +28,11 @@ public class GameManager extends SseSender<UUID> {
             throw new NotPlayersTurnException();
         }
 
+        if (match.isRolledDiceThisTurn()) {
+            throw new ForbiddenException("Already rolled dice.");
+        }
+        match.setRolledDiceThisTurn(true);
+
         Random random = new Random();
         int value1 = random.nextInt(DICE_MAX_VALUE) + DICE_MIN_VALUE;
         int value2 = random.nextInt(DICE_MAX_VALUE) + DICE_MIN_VALUE;
@@ -34,7 +40,10 @@ public class GameManager extends SseSender<UUID> {
         RollDiceResponse response = new RollDiceResponse(value1, value2);
         match.setCurrentDiceResult(new Integer[]{value1, value2});
 
+        // show dices above endTurn button
         sendEvent(allEmittersExcept(gameUUID, user), "rollDice", response, gameUUID);
+
+        sendMatchData(allEmitters(gameUUID), match);
         return response;
     }
 
@@ -83,9 +92,9 @@ public class GameManager extends SseSender<UUID> {
 
     public record RollDiceResponse(int value1, int value2) {}
 
-    private record MatchData(List<PlayerRepresentation> players, int playerCurrentTurn) {
+    private record MatchData(List<PlayerRepresentation> players, int playerCurrentTurn, Integer[] currentDiceResult) {
         public MatchData(Match match) {
-            this(match.getPlayers(), match.getPlayerCurrentTurn());
+            this(match.getPlayers(), match.getPlayerCurrentTurn(), match.getCurrentDiceResult());
         }
     }
 
