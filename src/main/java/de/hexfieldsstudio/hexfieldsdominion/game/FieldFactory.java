@@ -23,7 +23,7 @@ public class FieldFactory {
             int r2 = Math.min(boardRadius - 1, -q + boardRadius - 1);
             for (int r = r1; r <= r2; r++) {
                 if (q == 0 && r == 0) {
-                    fields.add(new Field(new AxialPosition(q, r), 7, ResourceType.DUNES));
+                    fields.add(new Field(new AxialPosition(q, r), 0, ResourceType.DUNES));
                     continue;
                 }
                 ResourceType type = availableResourceTypes.removeFirst();
