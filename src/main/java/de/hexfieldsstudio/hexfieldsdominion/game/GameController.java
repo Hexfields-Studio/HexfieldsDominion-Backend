@@ -42,8 +42,8 @@ public class GameController {
     }
 
     @PostMapping("/{gameUUID}/rollDice")
-    public GameManager.RollDiceResponse rollDice(@PathVariable UUID gameUUID) throws MatchNotFoundException, NotPlayersTurnException {
-        return gameManager.rollDice(gameUUID, AuthUtils.getAuthenticatedUser());
+    public void rollDice(@PathVariable UUID gameUUID) throws MatchNotFoundException, NotPlayersTurnException {
+        gameManager.rollDice(gameUUID, AuthUtils.getAuthenticatedUser());
     }
 
     @PostMapping("/{gameUUID}/endTurn")
