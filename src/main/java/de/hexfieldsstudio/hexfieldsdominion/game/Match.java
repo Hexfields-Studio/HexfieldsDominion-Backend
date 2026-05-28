@@ -1,8 +1,6 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
-import java.security.SecureRandom;
 import java.util.*;
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
