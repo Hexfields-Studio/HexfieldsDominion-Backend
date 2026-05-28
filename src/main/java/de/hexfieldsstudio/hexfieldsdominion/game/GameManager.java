@@ -22,7 +22,7 @@ public class GameManager extends SseSender<UUID> {
 
     private final LobbyManager lobbyManager;
 
-    public RollDiceResponse rollDice(UUID gameUUID, User user) throws MatchNotFoundException, NotPlayersTurnException {
+    public void rollDice(UUID gameUUID, User user) throws MatchNotFoundException, NotPlayersTurnException {
         Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
         if (!match.isPlayersTurn(user)) {
             throw new NotPlayersTurnException();
@@ -44,7 +44,6 @@ public class GameManager extends SseSender<UUID> {
         sendEvent(allEmittersExcept(gameUUID, user), "rollDice", response, gameUUID);
 
         sendMatchData(allEmitters(gameUUID), match);
-        return response;
     }
 
     public void nextPlayersTurn(UUID gameUUID, User user) throws MatchNotFoundException, NotPlayersTurnException {
