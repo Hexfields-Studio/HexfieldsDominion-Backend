@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.security.SecureRandom;
 import java.util.*;
 
 @Component
@@ -33,7 +34,7 @@ public class GameManager extends SseSender<UUID> {
         }
         match.setRolledDiceThisTurn(true);
 
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
         int value1 = random.nextInt(DICE_MAX_VALUE) + DICE_MIN_VALUE;
         int value2 = random.nextInt(DICE_MAX_VALUE) + DICE_MIN_VALUE;
 
