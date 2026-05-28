@@ -3,9 +3,13 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 import de.hexfieldsstudio.hexfieldsdominion.SseSender;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.error.ForbiddenException;
+import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
+import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.MissingAxialPositionsException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -66,6 +70,25 @@ public class GameManager extends SseSender<UUID> {
 
             sendMatchData(allEmitters(gameUUID), match);
         });
+    }
+
+    public void handlePlayerAction(UUID gameUUID, User user, PlayerActionDTO request) throws Exception {
+        switch (request.getType()){
+            case BUILD ->  {
+                Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
+                if (!match.isPlayersTurn(user)) {
+                    throw new NotPlayersTurnException();
+                }
+                BuildActionDTO buildActionDTO = (BuildActionDTO) request;
+                buildBuilding(match, buildActionDTO);
+            }
+            default -> throw new Exception("Move of type: " + request.getType() + " hasnt been implemented yet,");
+        }
+    }
+
+    public void buildBuilding(Match match, BuildActionDTO buildActionDTO) throws Exception{
+        boolean result = BuildingABuildingValidator.validate(match, buildActionDTO);
+
     }
 
     @Override
