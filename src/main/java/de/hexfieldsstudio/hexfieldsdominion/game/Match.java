@@ -29,6 +29,8 @@ public class Match {
     @Setter
     @Getter
     private boolean rolledDiceThisTurn = false;
+    @Getter
+    private final BuildingABuildingValidator validator;
 
     public Match(UUID uuid, int boardRadius, Lobby lobby){
         this.uuid = uuid;
@@ -40,6 +42,7 @@ public class Match {
                 ResourceType.SHEEP, 0.2f
         );
         this.fields = FieldFactory.generateFields(boardRadius, ratios);
+        this.validator = new BuildingABuildingValidator(this.fields);
 
         this.players = this.createPlayerRepresentationsForLobby(lobby);
         this.playersTurnOrder = this.generatePlayersTurnOrder();
@@ -79,5 +82,4 @@ public class Match {
                 .filter(player -> player.getUsername().equals(user.getUsername()))
                 .findFirst();
     }
-
 }

@@ -1,10 +1,7 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
-import de.hexfieldsstudio.hexfieldsdominion.error.InvalidDtoException;
-import de.hexfieldsstudio.hexfieldsdominion.game.error.MissingAxialPositionsException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
-import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
@@ -17,7 +14,6 @@ import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradeBankDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradePlayerDTO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import tools.jackson.databind.exc.InvalidTypeIdException;
 
 import java.util.List;
 import java.util.UUID;

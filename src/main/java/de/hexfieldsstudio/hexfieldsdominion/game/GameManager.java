@@ -6,10 +6,8 @@ import de.hexfieldsstudio.hexfieldsdominion.error.ForbiddenException;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
-import de.hexfieldsstudio.hexfieldsdominion.game.error.MissingAxialPositionsException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
-import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -87,7 +85,8 @@ public class GameManager extends SseSender<UUID> {
     }
 
     public void buildBuilding(Match match, BuildActionDTO buildActionDTO) throws Exception{
-        boolean result = BuildingABuildingValidator.validate(match, buildActionDTO);
+        match.getValidator().validate(match, buildActionDTO);
+        //boolean result = BuildingABuildingValidator.validate(match, buildActionDTO);
 
     }
 
