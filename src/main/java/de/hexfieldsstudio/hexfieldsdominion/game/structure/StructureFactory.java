@@ -1,0 +1,59 @@
+package de.hexfieldsstudio.hexfieldsdominion.game.structure;
+
+import de.hexfieldsstudio.hexfieldsdominion.game.AxialPosition;
+import de.hexfieldsstudio.hexfieldsdominion.game.BuildingABuildingValidator;
+import de.hexfieldsstudio.hexfieldsdominion.game.Match;
+import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
+import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
+
+import java.security.SecureRandom;
+import java.util.*;
+
+public class StructureFactory {
+    public static List<Structure> randomlyBuildInitialStructures(Match match, BuildingABuildingValidator validator){
+        List<Structure> initialStructures = new ArrayList<>();
+
+        Set<List<AxialPosition>> corners = Set.copyOf(validator.getCorners());
+        for (PlayerRepresentation player: match.getPlayers()){
+            for (int i = 0; i < 2; i++){    // Place for each player two "TOWN", each with a "STREET"
+                int rand = new SecureRandom().nextInt(corners.size());
+                List<AxialPosition> townPos = new ArrayList<>(corners).get(rand);
+                BuildActionDTO town = new BuildActionDTO(StructureType.TOWN, townPos);
+                if(!validator.validate(match, town)){
+                    i--;
+                    continue;
+                }
+
+                List<AxialPosition> findStreetPos = new ArrayList<>(List.copyOf(townPos));   // cornerPos.size() should be 3
+                Collections.rotate(findStreetPos, new SecureRandom().nextInt(3));
+                boolean foundValidStreetPos = false;
+                BuildActionDTO street = null;
+                for (int j = 0; j < findStreetPos.size(); j++){
+                    List<AxialPosition> streetPos = List.of(findStreetPos.get(0), findStreetPos.get(1));
+                    street = new BuildActionDTO(StructureType.STREET, streetPos);
+                    if(validator.validate(match, street)){
+                        foundValidStreetPos = true;
+                        break;
+                    }else{
+                        Collections.rotate(findStreetPos, 1);
+                    }
+                }
+
+                if(!foundValidStreetPos){
+                    i--;
+                    continue;
+                }
+
+                initialStructures.add(buildStructureFromDTO(player, town));
+                initialStructures.add(buildStructureFromDTO(player, street));
+            }
+        }
+
+        return initialStructures;
+    }
+
+    public static Structure buildStructureFromDTO(PlayerRepresentation player, BuildActionDTO dto){
+        return new Structure(player.getPublicId(), dto.getStructureType(), dto.getPos(), null);
+    }
+}

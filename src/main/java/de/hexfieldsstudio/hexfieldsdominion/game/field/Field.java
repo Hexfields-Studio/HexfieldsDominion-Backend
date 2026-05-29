@@ -1,5 +1,6 @@
-package de.hexfieldsstudio.hexfieldsdominion.game;
+package de.hexfieldsstudio.hexfieldsdominion.game.field;
 
+import de.hexfieldsstudio.hexfieldsdominion.game.AxialPosition;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 
 import java.util.HashMap;

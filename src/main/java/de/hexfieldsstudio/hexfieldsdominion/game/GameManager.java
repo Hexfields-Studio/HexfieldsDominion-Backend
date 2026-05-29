@@ -8,6 +8,7 @@ import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
+import de.hexfieldsstudio.hexfieldsdominion.game.structure.Structure;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -78,14 +79,16 @@ public class GameManager extends SseSender<UUID> {
                     throw new NotPlayersTurnException();
                 }
                 BuildActionDTO buildActionDTO = (BuildActionDTO) request;
-                buildBuilding(match, buildActionDTO);
+                buildBuilding(user, match, buildActionDTO);
+                sendMatchData(allEmitters(gameUUID), match);
             }
             default -> throw new Exception("Move of type: " + request.getType() + " hasnt been implemented yet,");
         }
     }
 
-    public void buildBuilding(Match match, BuildActionDTO buildActionDTO) throws Exception{
-        match.getValidator().validate(match, buildActionDTO);
+    public void buildBuilding(User user, Match match, BuildActionDTO buildActionDTO){
+        if(!match.getValidator().validate(match, buildActionDTO)) return;
+        match.buildBuilding(user, buildActionDTO);
         //boolean result = BuildingABuildingValidator.validate(match, buildActionDTO);
 
     }
@@ -114,9 +117,9 @@ public class GameManager extends SseSender<UUID> {
 
     public record RollDiceResponse(int value1, int value2) {}
 
-    private record MatchData(List<PlayerRepresentation> players, int playerCurrentTurn, Integer[] currentDiceResult) {
+    private record MatchData(List<Structure> structures, List<PlayerRepresentation> players, int playerCurrentTurn, Integer[] currentDiceResult) {
         public MatchData(Match match) {
-            this(match.getPlayers(), match.getPlayerCurrentTurn(), match.getCurrentDiceResult());
+            this(match.getStructures(), match.getPlayers(), match.getPlayerCurrentTurn(), match.getCurrentDiceResult());
         }
     }
 

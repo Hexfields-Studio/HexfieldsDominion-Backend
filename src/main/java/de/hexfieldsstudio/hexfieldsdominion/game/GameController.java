@@ -2,6 +2,7 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
+import de.hexfieldsstudio.hexfieldsdominion.game.field.Field;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;

@@ -2,12 +2,15 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MissingAxialPositionsException;
+import de.hexfieldsstudio.hexfieldsdominion.game.field.Field;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
+import lombok.Getter;
 
 import java.util.*;
 
 public class BuildingABuildingValidator {
 
+    @Getter
     private final Set<List<AxialPosition>> corners;
     private static final List<List<AxialPosition>> cornerOffsetToAdjacentFields = new ArrayList<>(List.of(
             List.of(AxialPosition.of(0, -1), AxialPosition.of(1, -1)),
@@ -17,6 +20,7 @@ public class BuildingABuildingValidator {
             List.of(AxialPosition.of(-1, 1), AxialPosition.of(-1, 0)),
             List.of(AxialPosition.of(-1, 0), AxialPosition.of(0, -1))
     ));
+    @Getter
     private final Set<List<AxialPosition>> edges;
     private static final List<AxialPosition> edgeOffsetToAdjacentField = List.of(
             AxialPosition.of(1, -1),
@@ -25,7 +29,6 @@ public class BuildingABuildingValidator {
             AxialPosition.of(-1, 1),
             AxialPosition.of(-1, 0),
             AxialPosition.of(0, -1)
-
     );
 
     public BuildingABuildingValidator(List<Field> fields){
@@ -37,23 +40,20 @@ public class BuildingABuildingValidator {
         StructureType type = buildActionDTO.getStructureType();
         if (buildActionDTO.getPos().size() != type.getPosAmount()) throw new MissingAxialPositionsException(type, buildActionDTO.getPos().size());
         List<AxialPosition> sortedPos = getSortedPosition(buildActionDTO.getPos());
+        buildActionDTO.setPos(sortedPos);
 
-        boolean isValid = isPositionValid(sortedPos);
+        boolean isValid;
         switch (type){
             case TOWN -> isValid = corners.contains(sortedPos);
             case STREET -> isValid = edges.contains(sortedPos);
+            default -> isValid = false;
         }
         System.out.printf("Type: %s; pos: %s; isValid: %s%n", type, sortedPos, isValid);
         if (!isValid) return false;
 
-        buildActionDTO.setPos(sortedPos);
-        Map<AxialPosition, Field> map = Field.getFieldsMap(match.getFields());
+        //Map<AxialPosition, Field> map = Field.getFieldsMap(match.getFields());
 
         return true;
-    }
-
-    private boolean isPositionValid(List<AxialPosition> pos){ //Remember to sort pos first!
-        return corners.contains(pos);
     }
 
     private Set<List<AxialPosition>> computeUniqueCorners(List<Field> fields){
