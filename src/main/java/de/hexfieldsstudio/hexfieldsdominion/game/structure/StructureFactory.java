@@ -4,6 +4,7 @@ import de.hexfieldsstudio.hexfieldsdominion.game.AxialPosition;
 import de.hexfieldsstudio.hexfieldsdominion.game.BuildingABuildingValidator;
 import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.TooLittleSpaceException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 
@@ -11,17 +12,18 @@ import java.security.SecureRandom;
 import java.util.*;
 
 public class StructureFactory {
-    public static List<Structure> randomlyBuildInitialStructures(Match match, BuildingABuildingValidator validator){
-        List<Structure> initialStructures = new ArrayList<>();
-
+    public static void randomlyBuildInitialStructures(Match match, BuildingABuildingValidator validator) throws TooLittleSpaceException {
+        int attempts = 0;
         Set<List<AxialPosition>> corners = Set.copyOf(validator.getCorners());
         for (PlayerRepresentation player: match.getPlayers()){
             for (int i = 0; i < 2; i++){    // Place for each player two "TOWN", each with a "STREET"
+                if (attempts >= 100) throw new TooLittleSpaceException();
                 int rand = new SecureRandom().nextInt(corners.size());
                 List<AxialPosition> townPos = new ArrayList<>(corners).get(rand);
                 BuildActionDTO town = new BuildActionDTO(StructureType.TOWN, townPos);
                 if(!validator.validate(match, town)){
                     i--;
+                    attempts++;
                     continue;
                 }
 
@@ -42,15 +44,15 @@ public class StructureFactory {
 
                 if(!foundValidStreetPos){
                     i--;
+                    attempts++;
                     continue;
                 }
 
-                initialStructures.add(buildStructureFromDTO(player, town));
-                initialStructures.add(buildStructureFromDTO(player, street));
+                List<Structure> structures = match.getStructures();
+                structures.add(buildStructureFromDTO(player, town));
+                structures.add(buildStructureFromDTO(player, street));
             }
         }
-
-        return initialStructures;
     }
 
     public static Structure buildStructureFromDTO(PlayerRepresentation player, BuildActionDTO dto){

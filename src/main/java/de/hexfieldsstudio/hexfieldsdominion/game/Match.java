@@ -5,6 +5,7 @@ import java.util.List;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.TooLittleSpaceException;
 import de.hexfieldsstudio.hexfieldsdominion.game.field.Field;
 import de.hexfieldsstudio.hexfieldsdominion.game.field.FieldFactory;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
@@ -13,6 +14,7 @@ import de.hexfieldsstudio.hexfieldsdominion.game.structure.StructureFactory;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 
@@ -23,7 +25,8 @@ public class Match {
     @Getter
     private final List<Field> fields;
     @Getter
-    private final List<Structure> structures;
+    @NonNull
+    private final List<Structure> structures = new ArrayList<>();
     @Getter
     private final UUID uuid;
     @Getter
@@ -37,7 +40,7 @@ public class Match {
     @Getter
     private final BuildingABuildingValidator validator;
 
-    public Match(UUID uuid, int boardRadius, Lobby lobby){
+    public Match(UUID uuid, int boardRadius, Lobby lobby) throws TooLittleSpaceException {
         this.uuid = uuid;
 
         Map<ResourceType, Float> ratios = Map.of(
@@ -52,7 +55,7 @@ public class Match {
         this.players = this.createPlayerRepresentationsForLobby(lobby);
         this.playersTurnOrder = this.generatePlayersTurnOrder();
 
-        this.structures = StructureFactory.randomlyBuildInitialStructures(this, validator);
+        StructureFactory.randomlyBuildInitialStructures(this, validator);
     }
 
     private List<PlayerRepresentation> createPlayerRepresentationsForLobby(Lobby lobby) {

@@ -16,5 +16,4 @@ public class Structure {
     private StructureType name;
     private List<AxialPosition> pos;
     private Map<ResourceType, Integer> recipe;
-
 }

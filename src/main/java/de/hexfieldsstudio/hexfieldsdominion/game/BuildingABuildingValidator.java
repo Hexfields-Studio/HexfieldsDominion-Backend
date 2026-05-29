@@ -3,6 +3,7 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MissingAxialPositionsException;
 import de.hexfieldsstudio.hexfieldsdominion.game.field.Field;
+import de.hexfieldsstudio.hexfieldsdominion.game.structure.Structure;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import lombok.Getter;
 
@@ -32,8 +33,8 @@ public class BuildingABuildingValidator {
     );
 
     public BuildingABuildingValidator(List<Field> fields){
-        corners = computeUniqueCorners(fields);
-        edges = computeUniqueEdges(fields);
+        corners = precomputeUniqueCorners(fields);
+        edges = precomputeUniqueEdges(fields);
     }
 
     public boolean validate(Match match, BuildActionDTO buildActionDTO) throws MissingAxialPositionsException{
@@ -51,12 +52,21 @@ public class BuildingABuildingValidator {
         System.out.printf("Type: %s; pos: %s; isValid: %s%n", type, sortedPos, isValid);
         if (!isValid) return false;
 
-        //Map<AxialPosition, Field> map = Field.getFieldsMap(match.getFields());
+        if(!isBuildingSpotFree(match, buildActionDTO)) return false;
 
         return true;
     }
 
-    private Set<List<AxialPosition>> computeUniqueCorners(List<Field> fields){
+    private boolean isBuildingSpotFree(Match match, BuildActionDTO buildActionDTO){
+        List<Structure> structures = match.getStructures();
+
+        for (Structure structure: structures){
+            if (structure.getPos().equals(buildActionDTO.getPos())) return false;
+        }
+        return true;
+    }
+
+    private Set<List<AxialPosition>> precomputeUniqueCorners(List<Field> fields){
         Set<List<AxialPosition>> cornerMap = new HashSet<>();
 
         for (Field field : fields){
@@ -78,7 +88,7 @@ public class BuildingABuildingValidator {
         return cornerMap;
     }
 
-    private Set<List<AxialPosition>> computeUniqueEdges(List<Field> fields){
+    private Set<List<AxialPosition>> precomputeUniqueEdges(List<Field> fields){
         Set<List<AxialPosition>> edgeMap = new HashSet<>();
 
         for (Field field : fields){

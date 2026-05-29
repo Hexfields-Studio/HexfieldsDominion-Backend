@@ -5,6 +5,7 @@ import java.util.Map;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
 import de.hexfieldsstudio.hexfieldsdominion.game.Match;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.TooLittleSpaceException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.dto.HeartbeatDTO;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.NotOwnerOfLobbyException;
@@ -72,7 +73,7 @@ public class LobbyController {
     }
 
     @PostMapping("/{lobbyCode}/match")
-    public LobbyManager.CreatedMatchResponse match(@PathVariable String lobbyCode) throws LobbyNotFoundException, NotOwnerOfLobbyException {
+    public LobbyManager.CreatedMatchResponse match(@PathVariable String lobbyCode) throws LobbyNotFoundException, NotOwnerOfLobbyException, TooLittleSpaceException {
         Lobby lobby = lobbyManager.findOccupiedLobbyOrThrow(lobbyCode);
         Match match = lobbyManager.createMatchForLobby(lobby, AuthUtils.getAuthenticatedUser());
         return new LobbyManager.CreatedMatchResponse(match);
