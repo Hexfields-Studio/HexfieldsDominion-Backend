@@ -73,7 +73,7 @@ public class Match {
     }
 
     public void nextPlayersTurn() {
-        playersTurnOrder.add(playersTurnOrder.removeFirst());
+        Collections.rotate(playersTurnOrder, 1);
         rolledDiceThisTurn = false;
     }
 
@@ -83,7 +83,7 @@ public class Match {
 
     public boolean isPlayersTurn(User user) {
         return this.getPlayerForUser(user)
-                .map(player -> player.getUsername().equals(user.getUsername()))
+                .map(player -> player.getPublicId() == getPlayerCurrentTurn())
                 .orElse(false);
     }
 
