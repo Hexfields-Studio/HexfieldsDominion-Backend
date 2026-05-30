@@ -45,6 +45,12 @@ public class GameBoard {
         return fieldsFound;
     }
 
+    public List<Field> getFieldsByNumberChip(int numberChip) {
+        return fields.stream()
+                .filter(field -> field.numberChip() == numberChip)
+                .toList();
+    }
+
     public static class NotAllFieldsFoundException extends Exception {}
 
 }

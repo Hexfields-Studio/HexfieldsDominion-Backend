@@ -3,9 +3,11 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,8 @@ import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradePlayerDTO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -50,6 +54,16 @@ public class GameController {
     @PostMapping("/{gameUUID}/endTurn")
     public void endTurn(@PathVariable UUID gameUUID) throws MatchNotFoundException, NotPlayersTurnException {
         gameManager.nextPlayersTurn(gameUUID, AuthUtils.getAuthenticatedUser());
+    }
+
+    @GetMapping("/{gameUUID}/grantedResources")
+    public Map<ResourceType, Integer> grantedResources(@PathVariable UUID gameUUID, HttpServletResponse response) throws MatchNotFoundException, NotPlayersTurnException {
+        Optional<Map<ResourceType, Integer>> resourcesOptional = gameManager.getGrantedResources(gameUUID, AuthUtils.getAuthenticatedUser());
+        if (resourcesOptional.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            return null;
+        }
+        return resourcesOptional.get();
     }
 
     // temporary, should be done when building siedlung/stadt
