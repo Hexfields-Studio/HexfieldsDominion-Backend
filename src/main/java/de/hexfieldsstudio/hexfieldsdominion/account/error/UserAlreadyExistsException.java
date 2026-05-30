@@ -4,6 +4,6 @@ import de.hexfieldsstudio.hexfieldsdominion.error.BadRequestException;
 
 public class UserAlreadyExistsException extends BadRequestException {
     public UserAlreadyExistsException() {
-        super("Es existiert bereits ein Nutzer mit diesem Namen.");
+        super("There is already an user with this name.");
     }
 }

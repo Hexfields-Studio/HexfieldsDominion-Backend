@@ -4,6 +4,6 @@ import de.hexfieldsstudio.hexfieldsdominion.error.BadRequestException;
 
 public class InvalidCredentialsException extends BadRequestException {
     public InvalidCredentialsException() {
-        super("Ungültige Zugangsdaten.");
+        super("Invalid credentials.");
     }
 }
