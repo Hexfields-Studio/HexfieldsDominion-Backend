@@ -1,5 +1,6 @@
-package de.hexfieldsstudio.hexfieldsdominion.game;
+package de.hexfieldsstudio.hexfieldsdominion.game.board;
 
+import de.hexfieldsstudio.hexfieldsdominion.game.AxialPosition;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 
 import java.security.SecureRandom;

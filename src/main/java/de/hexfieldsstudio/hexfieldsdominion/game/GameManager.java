@@ -25,7 +25,7 @@ public class GameManager extends SseSender<UUID> {
 
     public void rollDice(UUID gameUUID, User user) throws MatchNotFoundException, NotPlayersTurnException {
         Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
-        if (!match.isPlayersTurn(user)) {
+        if (!match.getGamePlayers().isPlayersTurn(user)) {
             throw new NotPlayersTurnException();
         }
 
@@ -49,7 +49,7 @@ public class GameManager extends SseSender<UUID> {
 
     public void nextPlayersTurn(UUID gameUUID, User user) throws MatchNotFoundException, NotPlayersTurnException {
         Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
-        if (!match.isPlayersTurn(user)) {
+        if (!match.getGamePlayers().isPlayersTurn(user)) {
             throw new NotPlayersTurnException();
         }
 
@@ -61,7 +61,7 @@ public class GameManager extends SseSender<UUID> {
     public void addPoints(UUID gameUUID, User user, int points) throws MatchNotFoundException {
         Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
 
-        match.getPlayerForUser(user).ifPresent(player -> {
+        match.getGamePlayers().getPlayerForUser(user).ifPresent(player -> {
             player.addPoints(points);
 
             sendMatchData(allEmitters(gameUUID), match);
@@ -94,7 +94,11 @@ public class GameManager extends SseSender<UUID> {
 
     private record MatchData(List<PlayerRepresentation> players, int playerCurrentTurn, Integer[] currentDiceResult) {
         public MatchData(Match match) {
-            this(match.getPlayers(), match.getPlayerCurrentTurn(), match.getCurrentDiceResult());
+            this(
+                match.getGamePlayers().getPlayers(),
+                match.getGamePlayers().getPlayerCurrentTurn(),
+                match.getCurrentDiceResult()
+            );
         }
     }
 

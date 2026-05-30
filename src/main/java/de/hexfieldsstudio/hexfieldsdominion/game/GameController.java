@@ -1,6 +1,7 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
+import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
@@ -33,7 +34,7 @@ public class GameController {
 
     @GetMapping("/{gameUUID}/fields")
     public List<Field> fields(@PathVariable UUID gameUUID) throws MatchNotFoundException {
-        return lobbyManager.findLobbyByMatch(gameUUID).getMatch().getFields();
+        return lobbyManager.findLobbyByMatch(gameUUID).getMatch().getGameBoard().getFields();
     }
 
     @GetMapping("/{gameUUID}/events")
