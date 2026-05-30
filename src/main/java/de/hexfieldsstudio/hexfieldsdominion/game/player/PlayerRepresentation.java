@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import java.awt.Color;
 import java.security.SecureRandom;
+import java.util.EnumMap;
 import java.util.Map;
 
 @Setter
@@ -16,7 +17,7 @@ public class PlayerRepresentation {
     private int publicId;
     private String sessionId;
     private Color color;
-    private final Map<ResourceType, Integer> resources = Map.of(ResourceType.WOOD, 2);
+    private final Map<ResourceType, Integer> resources = new EnumMap<>(ResourceType.class);
     private final String chosenPortrait;
     private int points = 0;
 

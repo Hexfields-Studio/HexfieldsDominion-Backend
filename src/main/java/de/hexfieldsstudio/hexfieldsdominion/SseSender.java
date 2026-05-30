@@ -47,8 +47,10 @@ public abstract class SseSender <T> {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    protected Map<String, SseEmitter> emittersOfOnly(String username, SseEmitter emitter) {
-        return Map.of(username, emitter);
+    protected Map<String, SseEmitter> emittersOfOnly(T group, String username) {
+        return allEmitters(group).entrySet().stream()
+                .filter(entry -> entry.getKey().equals(username))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private void unsubscribe(T group, String username) {

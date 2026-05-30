@@ -125,7 +125,7 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
         if (lobby == null) {
             return emitter;
         }
-        sendEvent(emittersOfOnly(username, emitter), "lobbyUpdate", lobby.getPlayers(), lobbyCode);
+        sendEvent(emittersOfOnly(lobbyCode, username), "lobbyUpdate", lobby.getPlayers(), lobbyCode);
 
         return emitter;
     }

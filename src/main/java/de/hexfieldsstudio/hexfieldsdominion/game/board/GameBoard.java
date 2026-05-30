@@ -1,0 +1,56 @@
+package de.hexfieldsstudio.hexfieldsdominion.game.board;
+
+import de.hexfieldsstudio.hexfieldsdominion.game.AxialPosition;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
+import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class GameBoard {
+
+    private static final Map<ResourceType, Float> RATIOS = Map.of(
+            ResourceType.WOOD, 0.3f,
+            ResourceType.BRICK, 0.2f,
+            ResourceType.WHEAT, 0.3f,
+            ResourceType.SHEEP, 0.2f
+    );
+
+    @Getter
+    private final List<Field> fields;
+    @Getter
+    private final List<Structure> structures = new ArrayList<>();
+
+    public GameBoard(int boardRadius) {
+        this.fields = FieldFactory.generateFields(boardRadius, RATIOS);
+    }
+
+    public void addStructure(Structure structure) {
+        this.structures.add(structure);
+    }
+
+    public List<Field> getFieldsAt(List<AxialPosition> positions) throws NotAllFieldsFoundException {
+        List<Field> fieldsFound = new ArrayList<>();
+        for (Field field : fields) {
+            if (!positions.contains(field.pos())) {
+                continue;
+            }
+            fieldsFound.add(field);
+        }
+
+        if (fieldsFound.size() != positions.size()) {
+            throw new NotAllFieldsFoundException();
+        }
+        return fieldsFound;
+    }
+
+    public List<Field> getFieldsByNumberChip(int numberChip) {
+        return fields.stream()
+                .filter(field -> field.numberChip() == numberChip)
+                .toList();
+    }
+
+    public static class NotAllFieldsFoundException extends Exception {}
+
+}

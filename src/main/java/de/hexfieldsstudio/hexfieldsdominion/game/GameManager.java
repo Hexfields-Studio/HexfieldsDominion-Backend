@@ -6,6 +6,7 @@ import de.hexfieldsstudio.hexfieldsdominion.error.ForbiddenException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,7 @@ public class GameManager extends SseSender<UUID> {
 
     public void rollDice(UUID gameUUID, User user) throws MatchNotFoundException, NotPlayersTurnException {
         Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
-        if (!match.isPlayersTurn(user)) {
+        if (!match.getPlayers().isPlayersTurn(user)) {
             throw new NotPlayersTurnException();
         }
 
@@ -38,18 +39,17 @@ public class GameManager extends SseSender<UUID> {
         int value1 = random.nextInt(DICE_MAX_VALUE) + DICE_MIN_VALUE;
         int value2 = random.nextInt(DICE_MAX_VALUE) + DICE_MIN_VALUE;
 
-        RollDiceResponse response = new RollDiceResponse(value1, value2);
         match.setCurrentDiceResult(new Integer[]{value1, value2});
 
-        // show dices above endTurn button
-        sendEvent(allEmittersExcept(gameUUID, user), "rollDice", response, gameUUID);
-
         sendMatchData(allEmitters(gameUUID), match);
+
+        // add resources. Updating will happen on client request so it doesn't happen during the dice animation
+        match.grantResourcesForDiceResult(value1 + value2);
     }
 
     public void nextPlayersTurn(UUID gameUUID, User user) throws MatchNotFoundException, NotPlayersTurnException {
         Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
-        if (!match.isPlayersTurn(user)) {
+        if (!match.getPlayers().isPlayersTurn(user)) {
             throw new NotPlayersTurnException();
         }
 
@@ -61,11 +61,20 @@ public class GameManager extends SseSender<UUID> {
     public void addPoints(UUID gameUUID, User user, int points) throws MatchNotFoundException {
         Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
 
-        match.getPlayerForUser(user).ifPresent(player -> {
+        match.getPlayers().getPlayerForUser(user).ifPresent(player -> {
             player.addPoints(points);
 
             sendMatchData(allEmitters(gameUUID), match);
         });
+    }
+
+    public Optional<Map<ResourceType, Integer>> getGrantedResources(UUID gameUUID, User user) throws MatchNotFoundException {
+        Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
+
+        sendMatchData(emittersOfOnly(gameUUID, user.getUsername()), match);
+
+        return match.getPlayers().getPlayerForUser(user)
+                .map(player -> match.getGrantedResourcesThisTurn().get(player.getPublicId()));
     }
 
     @Override
@@ -74,7 +83,7 @@ public class GameManager extends SseSender<UUID> {
 
         SseEmitter emitter = createEmitter(username, gameUUID);
 
-        sendMatchData(emittersOfOnly(username, emitter), match);
+        sendMatchData(emittersOfOnly(gameUUID, username), match);
 
         return emitter;
     }
@@ -90,11 +99,14 @@ public class GameManager extends SseSender<UUID> {
         sendEvent(emitters, "matchData", new MatchData(match), match.getUuid());
     }
 
-    public record RollDiceResponse(int value1, int value2) {}
-
-    private record MatchData(List<PlayerRepresentation> players, int playerCurrentTurn, Integer[] currentDiceResult) {
+    private record MatchData(List<PlayerRepresentation> players, int playerCurrentTurn, Integer[] currentDiceResult, boolean rolledDiceThisTurn) {
         public MatchData(Match match) {
-            this(match.getPlayers(), match.getPlayerCurrentTurn(), match.getCurrentDiceResult());
+            this(
+                match.getPlayers().getPlayers(),
+                match.getPlayers().getPlayerCurrentTurn(),
+                match.getCurrentDiceResult(),
+                match.isRolledDiceThisTurn()
+            );
         }
     }
 
