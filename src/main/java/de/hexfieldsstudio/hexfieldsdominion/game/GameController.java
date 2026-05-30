@@ -18,10 +18,7 @@ import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradeBankDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradePlayerDTO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping(path = "/games")
@@ -61,7 +58,7 @@ public class GameController {
         Optional<Map<ResourceType, Integer>> resourcesOptional = gameManager.getGrantedResources(gameUUID, AuthUtils.getAuthenticatedUser());
         if (resourcesOptional.isEmpty()) {
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-            return null;
+            return Collections.emptyMap();
         }
         return resourcesOptional.get();
     }
