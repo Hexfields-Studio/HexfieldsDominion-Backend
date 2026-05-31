@@ -1,9 +1,9 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
+import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
+import de.hexfieldsstudio.hexfieldsdominion.game.board.Structure;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MissingAxialPositionsException;
-import de.hexfieldsstudio.hexfieldsdominion.game.field.Field;
-import de.hexfieldsstudio.hexfieldsdominion.game.structure.Structure;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import lombok.Getter;
 
@@ -58,7 +58,7 @@ public class BuildingABuildingValidator {
     }
 
     private boolean isBuildingSpotFree(Match match, BuildActionDTO buildActionDTO){
-        List<Structure> structures = match.getStructures();
+        List<Structure> structures = match.getGameBoard().getStructures();
 
         for (Structure structure: structures){
             if (structure.getPos().equals(buildActionDTO.getPos())) return false;

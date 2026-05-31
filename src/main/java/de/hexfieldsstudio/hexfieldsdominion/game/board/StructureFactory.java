@@ -1,4 +1,4 @@
-package de.hexfieldsstudio.hexfieldsdominion.game.structure;
+package de.hexfieldsstudio.hexfieldsdominion.game.board;
 
 import de.hexfieldsstudio.hexfieldsdominion.game.AxialPosition;
 import de.hexfieldsstudio.hexfieldsdominion.game.BuildingABuildingValidator;
@@ -15,7 +15,7 @@ public class StructureFactory {
     public static void randomlyBuildInitialStructures(Match match, BuildingABuildingValidator validator) throws TooLittleSpaceException {
         int attempts = 0;
         Set<List<AxialPosition>> corners = Set.copyOf(validator.getCorners());
-        for (PlayerRepresentation player: match.getPlayers()){
+        for (PlayerRepresentation player: match.getPlayers().getPlayers()){
             for (int i = 0; i < 2; i++){    // Place for each player two "TOWN", each with a "STREET"
                 if (attempts >= 100) throw new TooLittleSpaceException();
                 int rand = new SecureRandom().nextInt(corners.size());
@@ -48,7 +48,7 @@ public class StructureFactory {
                     continue;
                 }
 
-                List<Structure> structures = match.getStructures();
+                List<Structure> structures = match.getGameBoard().getStructures();
                 structures.add(buildStructureFromDTO(player, town));
                 structures.add(buildStructureFromDTO(player, street));
             }
@@ -56,6 +56,6 @@ public class StructureFactory {
     }
 
     public static Structure buildStructureFromDTO(PlayerRepresentation player, BuildActionDTO dto){
-        return new Structure(player.getPublicId(), dto.getStructureType(), dto.getPos(), null);
+        return new Structure(dto.getStructureType(), dto.getPos(), player.getPublicId());
     }
 }

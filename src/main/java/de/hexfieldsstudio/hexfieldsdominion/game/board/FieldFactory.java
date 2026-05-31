@@ -1,4 +1,4 @@
-package de.hexfieldsstudio.hexfieldsdominion.game.field;
+package de.hexfieldsstudio.hexfieldsdominion.game.board;
 
 import de.hexfieldsstudio.hexfieldsdominion.game.AxialPosition;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
