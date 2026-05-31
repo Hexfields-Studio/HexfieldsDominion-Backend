@@ -95,7 +95,7 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
         sendEvent(allEmitters(lobbyCode), "lobbyUpdate", players, lobbyCode);
     }
 
-    public Match createMatchForLobby(Lobby lobby, User user) throws TooLittleSpaceException, InvalidRadiusException {
+    public Match createMatchForLobby(Lobby lobby, User user) throws TooLittleSpaceException, InvalidRadiusException, NotOwnerOfLobbyException {
         if (!lobby.isOwner(user.getUsername())) {
             throw new NotOwnerOfLobbyException();
         }

@@ -46,8 +46,8 @@ public class Match {
 
         this.players = new GamePlayers(lobby);
 
-        this.grantInitialResources();
         StructureFactory.randomlyBuildInitialStructures(this, validator);
+        this.grantInitialResources();
     }
 
     public void nextPlayersTurn() {

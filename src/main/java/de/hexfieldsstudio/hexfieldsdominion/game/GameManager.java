@@ -6,7 +6,9 @@ import de.hexfieldsstudio.hexfieldsdominion.error.ForbiddenException;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Structure;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.InvalidBuildRequestException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.MoveHasntBeenImplementedException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
@@ -76,7 +78,8 @@ public class GameManager extends SseSender<UUID> {
         });
     }
 
-    public void handlePlayerAction(UUID gameUUID, User user, PlayerActionDTO request) throws Exception {
+    public void handlePlayerAction(UUID gameUUID, User user, PlayerActionDTO request)
+            throws InvalidBuildRequestException, MoveHasntBeenImplementedException {
         switch (request.getType()){
             case BUILD ->  {
                 Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
@@ -87,12 +90,12 @@ public class GameManager extends SseSender<UUID> {
                 buildBuilding(user, match, buildActionDTO);
                 sendMatchData(allEmitters(gameUUID), match);
             }
-            default -> throw new Exception("Move of type: " + request.getType() + " hasnt been implemented yet,");
+            default -> throw new MoveHasntBeenImplementedException(request.getType());
         }
     }
 
-    public void buildBuilding(User user, Match match, BuildActionDTO buildActionDTO){
-        if(!match.getValidator().validate(user, match, buildActionDTO)) return;
+    public void buildBuilding(User user, Match match, BuildActionDTO buildActionDTO) throws InvalidBuildRequestException{
+        if(!match.getValidator().validate(user, match, buildActionDTO)) throw new InvalidBuildRequestException();
         match.buildBuilding(user, buildActionDTO);
     }
 
