@@ -6,6 +6,9 @@ import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.*;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.TooLittleSpaceException;
+import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
+import de.hexfieldsstudio.hexfieldsdominion.game.board.GameBoard;
+import de.hexfieldsstudio.hexfieldsdominion.game.player.GamePlayers;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.StructureFactory;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
@@ -63,7 +66,9 @@ public class Match {
                     PlayerRepresentation player = playerOptional.get();
 
                     try {
-                        gameBoard.getFieldsAt(structure.getPos()).forEach(field -> setOrAddResource(player.getResources(), field));
+                        gameBoard.getFieldsAt(structure.getPos()).forEach(field -> {
+                            setOrAddResource(player.getResources(), field);
+                        });
                     } catch (GameBoard.NotAllFieldsFoundException e) {
                         System.out.println("ERROR: Invalid initial structures generated. Could not find fields for all AxialPos.");
                     }

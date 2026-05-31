@@ -4,6 +4,6 @@ import de.hexfieldsstudio.hexfieldsdominion.error.NotFoundException;
 
 public class LobbyNotFoundException extends NotFoundException {
     public LobbyNotFoundException(String lobbyCode) {
-        super("Es wurde keine Lobby mit dem Code %s gefunden.".formatted(lobbyCode));
+        super("No Lobby with Code %s was found.".formatted(lobbyCode));
     }
 }
