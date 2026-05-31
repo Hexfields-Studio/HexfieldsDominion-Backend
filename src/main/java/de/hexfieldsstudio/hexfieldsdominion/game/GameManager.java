@@ -87,8 +87,9 @@ public class GameManager extends SseSender<UUID> {
     }
 
     public void buildBuilding(User user, Match match, BuildActionDTO buildActionDTO){
-        if(!match.getValidator().validate(match, buildActionDTO)) return;
+        if(!match.getValidator().validate(user, match, buildActionDTO)) return;
         match.buildBuilding(user, buildActionDTO);
+
         //boolean result = BuildingABuildingValidator.validate(match, buildActionDTO);
 
     }

@@ -38,12 +38,6 @@ public class Match {
     public Match(UUID uuid, int boardRadius, Lobby lobby) throws TooLittleSpaceException {
         this.uuid = uuid;
 
-        Map<ResourceType, Float> ratios = Map.of(
-                ResourceType.WOOD, 0.3f,
-                ResourceType.BRICK, 0.2f,
-                ResourceType.WHEAT, 0.3f,
-                ResourceType.SHEEP, 0.2f
-        );
         this.gameBoard = new GameBoard(boardRadius);
         this.validator = new BuildingABuildingValidator(this.gameBoard.getFields());
 
@@ -69,9 +63,7 @@ public class Match {
                     PlayerRepresentation player = playerOptional.get();
 
                     try {
-                        gameBoard.getFieldsAt(structure.getPos()).forEach(field -> {
-                            setOrAddResource(player.getResources(), field);
-                        });
+                        gameBoard.getFieldsAt(structure.getPos()).forEach(field -> setOrAddResource(player.getResources(), field));
                     } catch (GameBoard.NotAllFieldsFoundException e) {
                         System.out.println("ERROR: Invalid initial structures generated. Could not find fields for all AxialPos.");
                     }
@@ -113,11 +105,10 @@ public class Match {
     }
 
     public void buildBuilding(User user, BuildActionDTO buildActionDTO){
-        this.players.getPlayerForUser(user).ifPresentOrElse(player -> {
-            this.buildBuilding(player, buildActionDTO);
-        }, () -> {
-            System.out.println("Player " + user.getUsername() + " not found");
-        });
+        this.players.getPlayerForUser(user).ifPresentOrElse(
+                player -> this.buildBuilding(player, buildActionDTO),
+                () -> System.out.println("Player " + user.getUsername() + " not found")
+        );
     }
 
     public void buildBuilding(PlayerRepresentation player, BuildActionDTO buildActionDTO){

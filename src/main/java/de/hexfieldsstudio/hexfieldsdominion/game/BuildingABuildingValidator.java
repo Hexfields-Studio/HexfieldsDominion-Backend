@@ -1,9 +1,11 @@
 package de.hexfieldsstudio.hexfieldsdominion.game;
 
+import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Structure;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MissingAxialPositionsException;
+import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import lombok.Getter;
 
@@ -37,7 +39,7 @@ public class BuildingABuildingValidator {
         edges = precomputeUniqueEdges(fields);
     }
 
-    public boolean validate(Match match, BuildActionDTO buildActionDTO) throws MissingAxialPositionsException{
+    public boolean validate(User user, Match match, BuildActionDTO buildActionDTO) throws MissingAxialPositionsException{
         StructureType type = buildActionDTO.getStructureType();
         if (buildActionDTO.getPos().size() != type.getPosAmount()) throw new MissingAxialPositionsException(type, buildActionDTO.getPos().size());
         List<AxialPosition> sortedPos = getSortedPosition(buildActionDTO.getPos());
@@ -54,16 +56,45 @@ public class BuildingABuildingValidator {
 
         if(!isBuildingSpotFree(match, buildActionDTO)) return false;
 
-        return true;
+        return canPlayerBuildHere(user, match, buildActionDTO);
+    }
+
+    private boolean canPlayerBuildHere(User user, Match match, BuildActionDTO buildActionDTO){
+        Optional<PlayerRepresentation> temp = match.getPlayers().getPlayerForUser(user);
+        if (temp.isEmpty()) return true;
+        PlayerRepresentation player = temp.get();
+
+        List<Structure> neighbours = new ArrayList<>();
+        switch (buildActionDTO.getStructureType()){
+            case TOWN -> {
+                neighbours = getCornerNeighbours(match, buildActionDTO);
+            }
+        }
+
+        for (Structure neighbour : neighbours){
+            if (neighbour == null) continue;
+            if (neighbour.getOwnerId() == player.getPublicId()) return true;
+        }
+        return false;
+    }
+
+    private List<Structure> getCornerNeighbours(Match match, BuildActionDTO buildActionDTO){
+        List<Structure> neighbourEdges = new ArrayList<>();
+
+        List<AxialPosition> pos = buildActionDTO.getPos();
+        for (int i = 0; i < pos.size(); i++) {
+            List<AxialPosition> neighbourPos = new ArrayList<>(List.copyOf(pos));
+            Collections.rotate(neighbourPos, i);
+            neighbourPos.removeLast();
+            neighbourEdges.add(match.getGameBoard().getStructureAt(getSortedPosition(neighbourPos)));
+        }
+
+        System.out.println("neighbourEdges: " + neighbourEdges);
+        return neighbourEdges;
     }
 
     private boolean isBuildingSpotFree(Match match, BuildActionDTO buildActionDTO){
-        List<Structure> structures = match.getGameBoard().getStructures();
-
-        for (Structure structure: structures){
-            if (structure.getPos().equals(buildActionDTO.getPos())) return false;
-        }
-        return true;
+        return match.getGameBoard().getStructureAt(getSortedPosition(buildActionDTO.getPos())) == null;
     }
 
     private Set<List<AxialPosition>> precomputeUniqueCorners(List<Field> fields){

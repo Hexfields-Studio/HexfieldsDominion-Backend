@@ -21,7 +21,7 @@ public class StructureFactory {
                 int rand = new SecureRandom().nextInt(corners.size());
                 List<AxialPosition> townPos = new ArrayList<>(corners).get(rand);
                 BuildActionDTO town = new BuildActionDTO(StructureType.TOWN, townPos);
-                if(!validator.validate(match, town)){
+                if(!validator.validate(null, match, town)){
                     i--;
                     attempts++;
                     continue;
@@ -34,7 +34,7 @@ public class StructureFactory {
                 for (int j = 0; j < findStreetPos.size(); j++){
                     List<AxialPosition> streetPos = List.of(findStreetPos.get(0), findStreetPos.get(1));
                     street = new BuildActionDTO(StructureType.STREET, streetPos);
-                    if(validator.validate(match, street)){
+                    if(validator.validate(null, match, street)){
                         foundValidStreetPos = true;
                         break;
                     }else{

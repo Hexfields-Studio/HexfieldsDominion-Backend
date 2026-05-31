@@ -47,6 +47,13 @@ public class GameBoard {
         return fieldsFound;
     }
 
+    public Structure getStructureAt(List<AxialPosition> pos) {
+        for (Structure structure: structures){
+            if (structure.getPos().equals(pos)) return structure;
+        }
+        return null;
+    }
+
     public List<Field> getFieldsByNumberChip(int numberChip) {
         return fields.stream()
                 .filter(field -> field.numberChip() == numberChip)

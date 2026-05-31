@@ -46,11 +46,12 @@ public class GamePlayers {
 
     public boolean isPlayersTurn(User user) {
         return this.getPlayerForUser(user)
-                .map(player -> player.getUsername().equals(user.getUsername()))
+                .map(player -> player.getPublicId() == getPlayerCurrentTurn())
                 .orElse(false);
     }
 
     public Optional<PlayerRepresentation> getPlayerForUser(User user) {
+        if(user == null) return Optional.empty();
         return players.stream()
                 .filter(player -> player.getUsername().equals(user.getUsername()))
                 .findFirst();
