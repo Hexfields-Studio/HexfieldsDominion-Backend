@@ -24,5 +24,4 @@ import lombok.Setter;
 @Setter
 public abstract class PlayerActionDTO {
     private PlayerActionType type;
-    private String sessionId;
 }

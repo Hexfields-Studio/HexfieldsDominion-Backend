@@ -5,6 +5,7 @@ import java.util.*;
 import de.hexfieldsstudio.hexfieldsdominion.SseSender;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.game.Match;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.TooLittleSpaceException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.InvalidRadiusException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
@@ -94,7 +95,7 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
         sendEvent(allEmitters(lobbyCode), "lobbyUpdate", players, lobbyCode);
     }
 
-    public Match createMatchForLobby(Lobby lobby, User user) throws NotOwnerOfLobbyException, InvalidRadiusException {
+    public Match createMatchForLobby(Lobby lobby, User user) throws TooLittleSpaceException, InvalidRadiusException, NotOwnerOfLobbyException {
         if (!lobby.isOwner(user.getUsername())) {
             throw new NotOwnerOfLobbyException();
         }

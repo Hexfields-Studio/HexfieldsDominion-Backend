@@ -1,6 +1,8 @@
 package de.hexfieldsstudio.hexfieldsdominion.game.board;
 
 import de.hexfieldsstudio.hexfieldsdominion.game.AxialPosition;
+import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
+import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import lombok.Getter;
 
@@ -26,8 +28,8 @@ public class GameBoard {
         this.fields = FieldFactory.generateFields(boardRadius, RATIOS);
     }
 
-    public void addStructure(Structure structure) {
-        this.structures.add(structure);
+    public void addStructure(PlayerRepresentation player, BuildActionDTO buildActionDTO) {
+        this.structures.add(StructureFactory.buildStructureFromDTO(player, buildActionDTO));
     }
 
     public List<Field> getFieldsAt(List<AxialPosition> positions) throws NotAllFieldsFoundException {
@@ -43,6 +45,13 @@ public class GameBoard {
             throw new NotAllFieldsFoundException();
         }
         return fieldsFound;
+    }
+
+    public Structure getStructureAt(List<AxialPosition> pos) {
+        for (Structure structure: structures){
+            if (structure.getPos().equals(pos)) return structure;
+        }
+        return null;
     }
 
     public List<Field> getFieldsByNumberChip(int numberChip) {
