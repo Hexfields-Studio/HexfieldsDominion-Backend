@@ -6,6 +6,7 @@ import de.hexfieldsstudio.hexfieldsdominion.error.ForbiddenException;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Structure;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
+import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradeBankDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.InvalidBuildRequestException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MoveHasntBeenImplementedException;
@@ -81,13 +82,22 @@ public class GameManager extends SseSender<UUID> {
     public void handlePlayerAction(UUID gameUUID, User user, PlayerActionDTO request)
             throws InvalidBuildRequestException, MoveHasntBeenImplementedException {
         switch (request.getType()){
-            case BUILD ->  {
+            case BUILD -> {
                 Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
                 if (!match.getPlayers().isPlayersTurn(user)) {
                     throw new NotPlayersTurnException();
                 }
                 BuildActionDTO buildActionDTO = (BuildActionDTO) request;
                 buildBuilding(user, match, buildActionDTO);
+                sendMatchData(allEmitters(gameUUID), match);
+            }
+            case TRADE_BANK -> {
+                Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
+                if (!match.getPlayers().isPlayersTurn(user)) {
+                    throw new NotPlayersTurnException();
+                }
+                TradeBankDTO tradeBankDTO = (TradeBankDTO) request;
+                match.getTradingHandler().tradeBank(user, match, tradeBankDTO);
                 sendMatchData(allEmitters(gameUUID), match);
             }
             default -> throw new MoveHasntBeenImplementedException(request.getType());
