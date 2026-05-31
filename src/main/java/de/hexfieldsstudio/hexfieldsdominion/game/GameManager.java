@@ -42,7 +42,7 @@ public class GameManager extends SseSender<UUID> {
 
         match.setCurrentDiceResult(new Integer[]{value1, value2});
 
-        sendMatchData(allEmitters(gameUUID), match);
+        sendEvent(allEmitters(gameUUID), "rollDice", new MatchData(match), gameUUID);
 
         // add resources. Updating will happen on client request so it doesn't happen during the dice animation
         match.grantResourcesForDiceResult(value1 + value2);
@@ -121,5 +121,7 @@ public class GameManager extends SseSender<UUID> {
             );
         }
     }
+
+    private record RollDiceResult(int value1, int value2) {}
 
 }
