@@ -4,7 +4,7 @@ import java.util.*;
 
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.GameBoard;
-import de.hexfieldsstudio.hexfieldsdominion.game.board.GamePlayers;
+import de.hexfieldsstudio.hexfieldsdominion.game.player.GamePlayers;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Structure;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;

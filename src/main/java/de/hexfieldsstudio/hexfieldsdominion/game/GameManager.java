@@ -21,6 +21,7 @@ public class GameManager extends SseSender<UUID> {
 
     private static final int DICE_MIN_VALUE = 1;
     private static final int DICE_MAX_VALUE = 6;
+    private static final int POINTS_REQUIRED_TO_WIN = 10;
 
     private final LobbyManager lobbyManager;
 
@@ -64,6 +65,10 @@ public class GameManager extends SseSender<UUID> {
         match.getPlayers().getPlayerForUser(user).ifPresent(player -> {
             player.addPoints(points);
 
+            if (player.getPoints() >= POINTS_REQUIRED_TO_WIN) {
+                match.getPlayers().setWinner(player);
+            }
+
             sendMatchData(allEmitters(gameUUID), match);
         });
     }
@@ -99,13 +104,20 @@ public class GameManager extends SseSender<UUID> {
         sendEvent(emitters, "matchData", new MatchData(match), match.getUuid());
     }
 
-    private record MatchData(List<PlayerRepresentation> players, int playerCurrentTurn, Integer[] currentDiceResult, boolean rolledDiceThisTurn) {
+    private record MatchData(
+            List<PlayerRepresentation> players,
+            int playerCurrentTurn,
+            Integer[] currentDiceResult,
+            boolean rolledDiceThisTurn,
+            PlayerRepresentation winner
+    ) {
         public MatchData(Match match) {
             this(
                 match.getPlayers().getPlayers(),
                 match.getPlayers().getPlayerCurrentTurn(),
                 match.getCurrentDiceResult(),
-                match.isRolledDiceThisTurn()
+                match.isRolledDiceThisTurn(),
+                match.getPlayers().getWinner()
             );
         }
     }

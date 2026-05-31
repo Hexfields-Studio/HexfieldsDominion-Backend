@@ -1,9 +1,9 @@
-package de.hexfieldsstudio.hexfieldsdominion.game.board;
+package de.hexfieldsstudio.hexfieldsdominion.game.player;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
-import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,6 +16,9 @@ public class GamePlayers {
     private final List<PlayerRepresentation> players;
     @Getter
     private final List<Integer> playersTurnOrder;
+    @Getter
+    @Setter
+    private PlayerRepresentation winner;
 
     public GamePlayers(Lobby lobby) {
         this.players = this.createPlayerRepresentationsForLobby(lobby);

@@ -6,6 +6,6 @@ import java.util.UUID;
 
 public class MatchNotFoundException extends NotFoundException {
     public MatchNotFoundException(UUID matchUUID) {
-        super("Es wurde kein Match %s gefunden.".formatted(matchUUID.toString()));
+        super("Match %s not found.".formatted(matchUUID.toString()));
     }
 }
