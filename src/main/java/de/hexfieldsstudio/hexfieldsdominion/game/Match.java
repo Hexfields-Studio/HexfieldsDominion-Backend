@@ -2,17 +2,20 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 
 import java.util.*;
 
+import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
+import de.hexfieldsstudio.hexfieldsdominion.game.board.*;
+import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.TooLittleSpaceException;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.GameBoard;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.GamePlayers;
-import de.hexfieldsstudio.hexfieldsdominion.game.board.Structure;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
+import de.hexfieldsstudio.hexfieldsdominion.game.board.StructureFactory;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import lombok.Getter;
 import lombok.Setter;
-
 
 public class Match {
 
@@ -32,48 +35,24 @@ public class Match {
     @Setter
     @Getter
     private boolean rolledDiceThisTurn = false;
+    @Getter
+    private final BuildingABuildingValidator validator;
 
-    public Match(UUID uuid, int boardRadius, Lobby lobby) {
+    public Match(UUID uuid, int boardRadius, Lobby lobby) throws TooLittleSpaceException {
         this.uuid = uuid;
+
         this.gameBoard = new GameBoard(boardRadius);
+        this.validator = new BuildingABuildingValidator(this.gameBoard.getFields());
+
         this.players = new GamePlayers(lobby);
 
-        this.generateInitialStructures();
+        StructureFactory.randomlyBuildInitialStructures(this, validator);
         this.grantInitialResources();
     }
 
     public void nextPlayersTurn() {
         players.rotateNextPlayer();
         rolledDiceThisTurn = false;
-    }
-
-    private void generateInitialStructures() {
-        // temporary for simulating initial structures
-        Structure[] structures = new Structure[]{new Structure(
-                StructureType.TOWN,
-                List.of(
-                        new AxialPosition(1, 1),
-                        new AxialPosition(0, 1),
-                        new AxialPosition(1, 0)
-                ),
-                players.getPlayers().getFirst().getPublicId()
-        ),
-        new Structure(
-                StructureType.TOWN,
-                List.of(
-                        new AxialPosition(-1, 0),
-                        new AxialPosition(-1, -1),
-                        new AxialPosition(-2, 0)
-                ),
-                players.getPlayers().getLast().getPublicId()
-        )};
-
-        for (Structure structure : structures) {
-            if (structure.getPos().contains(new AxialPosition(0, 0))) {
-                System.out.println("ERROR: Invalid initial structures generated. Dunes field (0, 0) should not be next to an initial structure as there is no resource to give.");
-            }
-            gameBoard.addStructure(structure);
-        }
     }
 
     private void grantInitialResources() {
@@ -130,4 +109,14 @@ public class Match {
         );
     }
 
+    public void buildBuilding(User user, BuildActionDTO buildActionDTO){
+        this.players.getPlayerForUser(user).ifPresentOrElse(
+                player -> this.buildBuilding(player, buildActionDTO),
+                () -> System.out.println("Player " + user.getUsername() + " not found")
+        );
+    }
+
+    public void buildBuilding(PlayerRepresentation player, BuildActionDTO buildActionDTO){
+        gameBoard.addStructure(player, buildActionDTO);
+    }
 }
