@@ -33,6 +33,11 @@ public class BuildingABuildingValidator {
             AxialPosition.of(-1, 0),
             AxialPosition.of(0, -1)
     );
+    private static final Map<AxialPosition, List<AxialPosition>> edgeNeighboursOffsets = Map.of(
+            AxialPosition.of(1, -1),    List.of(AxialPosition.of(0, -1), AxialPosition.of(1, 0)),
+            AxialPosition.of(1, 0),     List.of(AxialPosition.of(1, -1), AxialPosition.of(0, 1)),
+            AxialPosition.of(0, 1),     List.of(AxialPosition.of(-1, 1), AxialPosition.of(1, 0))
+    );
 
     public BuildingABuildingValidator(List<Field> fields){
         corners = precomputeUniqueCorners(fields);
@@ -66,9 +71,8 @@ public class BuildingABuildingValidator {
 
         List<Structure> neighbours = new ArrayList<>();
         switch (buildActionDTO.getStructureType()){
-            case TOWN -> {
-                neighbours = getCornerNeighbours(match, buildActionDTO);
-            }
+            case TOWN -> neighbours = getNeighboursToCorner(match, buildActionDTO);
+            case STREET -> neighbours = getNeighboursToEdge(match, buildActionDTO);
         }
 
         for (Structure neighbour : neighbours){
@@ -78,19 +82,42 @@ public class BuildingABuildingValidator {
         return false;
     }
 
-    private List<Structure> getCornerNeighbours(Match match, BuildActionDTO buildActionDTO){
-        List<Structure> neighbourEdges = new ArrayList<>();
+    private List<Structure> getNeighboursToCorner(Match match, BuildActionDTO buildActionDTO){
+        List<Structure> edges = new ArrayList<>();
 
         List<AxialPosition> pos = buildActionDTO.getPos();
         for (int i = 0; i < pos.size(); i++) {
-            List<AxialPosition> neighbourPos = new ArrayList<>(List.copyOf(pos));
-            Collections.rotate(neighbourPos, i);
-            neighbourPos.removeLast();
-            neighbourEdges.add(match.getGameBoard().getStructureAt(getSortedPosition(neighbourPos)));
+            List<AxialPosition> edgePos = new ArrayList<>(List.copyOf(pos));
+            Collections.rotate(edgePos, i);
+            edgePos.removeLast();
+            edges.add(match.getGameBoard().getStructureAt(getSortedPosition(edgePos)));
         }
+        return edges;
+    }
 
-        System.out.println("neighbourEdges: " + neighbourEdges);
-        return neighbourEdges;
+    private List<Structure> getNeighboursToEdge(Match match, BuildActionDTO buildActionDTO){
+        List<Structure> corners = new ArrayList<>();
+
+        List<AxialPosition> pos = buildActionDTO.getPos();
+        AxialPosition firstPos = pos.getFirst();
+        AxialPosition lastPos = pos.getLast();
+        AxialPosition edgeOffsetToAdjacentField = AxialPosition.of(
+                lastPos.q() - firstPos.q(),
+                lastPos.r() - firstPos.r());
+        List<AxialPosition> bothMissingCornerPosInfo = edgeNeighboursOffsets.get(edgeOffsetToAdjacentField);
+        for (AxialPosition missingCornerPosInfo : bothMissingCornerPosInfo){
+            corners.add(match.getGameBoard().getStructureAt(getSortedPosition(
+                    List.of(
+                            firstPos,
+                            lastPos,
+                            AxialPosition.of(
+                                    firstPos.q() + missingCornerPosInfo.q(),
+                                    firstPos.r() + missingCornerPosInfo.r()
+                            )
+                    )
+            )));
+        }
+        return corners;
     }
 
     private boolean isBuildingSpotFree(Match match, BuildActionDTO buildActionDTO){
