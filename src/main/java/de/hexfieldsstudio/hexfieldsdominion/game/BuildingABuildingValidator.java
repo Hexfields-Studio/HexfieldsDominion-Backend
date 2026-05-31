@@ -56,7 +56,7 @@ public class BuildingABuildingValidator {
             case STREET -> isValid = edges.contains(sortedPos);
             default -> isValid = false;
         }
-        System.out.printf("Type: %s; pos: %s; isValid: %s%n", type, sortedPos, isValid);
+
         if (!isValid) return false;
 
         if(!isBuildingSpotFree(match, buildActionDTO)) return false;
