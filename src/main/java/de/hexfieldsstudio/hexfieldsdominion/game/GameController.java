@@ -76,7 +76,6 @@ public class GameController {
         gameManager.handlePlayerAction(gameUUID, AuthUtils.getAuthenticatedUser(), request);
     }
 
-    @PostMapping("/{gameUUID}/build")
     private void buildStructure(BuildActionDTO dto) {
 
     }
