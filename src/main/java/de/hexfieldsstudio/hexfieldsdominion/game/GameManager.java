@@ -4,6 +4,7 @@ import de.hexfieldsstudio.hexfieldsdominion.SseSender;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.error.ForbiddenException;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Structure;
+import de.hexfieldsstudio.hexfieldsdominion.game.board.StructureFactory;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.InvalidBuildRequestException;
@@ -97,6 +98,7 @@ public class GameManager extends SseSender<UUID> {
     public void buildBuilding(User user, Match match, BuildActionDTO buildActionDTO) throws InvalidBuildRequestException{
         if(!match.getValidator().validate(user, match, buildActionDTO)) throw new InvalidBuildRequestException();
         match.buildBuilding(user, buildActionDTO);
+        match.letPlayerPayRecipe(user, StructureFactory.getRecipeForStructureType(buildActionDTO.getStructureType()));
     }
 
     public Optional<Map<ResourceType, Integer>> getGrantedResources(UUID gameUUID, User user) throws MatchNotFoundException {

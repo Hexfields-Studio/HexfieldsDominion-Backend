@@ -8,15 +8,11 @@ import java.util.*;
 
 public class FieldFactory {
 
-    private static int boardRadius;
-
     public static List<Field> generateFields(int boardRadius, Map<ResourceType, Float> ratios) {
-        FieldFactory.boardRadius = boardRadius;
-
         List<Field> fields = new ArrayList<>();
 
-        List<ResourceType> availableResourceTypes = generateAvailableResourceTypes(ratios);
-        List<Integer> numberChips = generateNumberChips();
+        List<ResourceType> availableResourceTypes = generateAvailableResourceTypes(boardRadius, ratios);
+        List<Integer> numberChips = generateNumberChips(boardRadius);
 
         // https://www.redblobgames.com/grids/hexagons/#coordinates-axial (pointy)
         for (int q = -boardRadius + 1; q <= boardRadius - 1; q++) {
@@ -36,13 +32,13 @@ public class FieldFactory {
         return fields;
     }
 
-    private static int calculateTotalResourceFields(){
+    private static int calculateTotalResourceFields(int boardRadius){
         return 3 * boardRadius * (boardRadius - 1); //excluding center field
     }
 
-    private static List<Integer> generateNumberChips(){
+    private static List<Integer> generateNumberChips(int boardRadius){
         List<Integer> numberChips = new ArrayList<>(List.of(2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12));
-        int totalFields = calculateTotalResourceFields();
+        int totalFields = calculateTotalResourceFields(boardRadius);
 
         SecureRandom random = new SecureRandom();
         while (numberChips.size() < totalFields) {
@@ -54,8 +50,8 @@ public class FieldFactory {
         return numberChips;
     }
 
-    private static List<ResourceType> generateAvailableResourceTypes(Map<ResourceType, Float> ratios){
-        int totalFields = calculateTotalResourceFields();
+    private static List<ResourceType> generateAvailableResourceTypes(int boardRadius, Map<ResourceType, Float> ratios){
+        int totalFields = calculateTotalResourceFields(boardRadius);
 
         List<ResourceType> types = new ArrayList<>(ratios.keySet());
         Map<ResourceType, Integer> counts = new EnumMap<>(ResourceType.class);

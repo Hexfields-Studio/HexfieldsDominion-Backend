@@ -3,9 +3,11 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Structure;
+import de.hexfieldsstudio.hexfieldsdominion.game.board.StructureFactory;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MissingAxialPositionsException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import lombok.Getter;
 
@@ -47,6 +49,9 @@ public class BuildingABuildingValidator {
     public boolean validate(User user, Match match, BuildActionDTO buildActionDTO) throws MissingAxialPositionsException{
         StructureType type = buildActionDTO.getStructureType();
         if (buildActionDTO.getPos().size() != type.getPosAmount()) throw new MissingAxialPositionsException(type, buildActionDTO.getPos().size());
+
+        if(!playerHasEnoughResourcesToBuild(user, match, buildActionDTO)) return false;
+
         List<AxialPosition> sortedPos = getSortedPosition(buildActionDTO.getPos());
         buildActionDTO.setPos(sortedPos);
 
@@ -62,6 +67,25 @@ public class BuildingABuildingValidator {
         if(!isBuildingSpotFree(match, buildActionDTO)) return false;
 
         return canPlayerBuildHere(user, match, buildActionDTO);
+    }
+
+    private boolean playerHasEnoughResourcesToBuild(User user, Match match, BuildActionDTO buildActionDTO){
+        Optional<PlayerRepresentation> temp = match.getPlayers().getPlayerForUser(user);
+        if (temp.isEmpty()) return true;
+        PlayerRepresentation player = temp.get();
+
+        boolean playerHasEnoughResources = true;
+        Map<ResourceType, Integer> recipe = StructureFactory.getRecipeForStructureType(buildActionDTO.getStructureType());
+        Map<ResourceType, Integer> playersResources = player.getResources();
+        for(Map.Entry<ResourceType, Integer> entry : recipe.entrySet()){
+            int cost = entry.getValue();
+            if(playersResources.get(entry.getKey()) < cost){
+                playerHasEnoughResources = false;
+                break;
+            }
+        }
+
+        return playerHasEnoughResources;
     }
 
     private boolean canPlayerBuildHere(User user, Match match, BuildActionDTO buildActionDTO){
