@@ -1,12 +1,12 @@
 package de.hexfieldsstudio.hexfieldsdominion.game.player;
 
-import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
-import lombok.Getter;
-import lombok.Setter;
-import java.awt.Color;
 import java.security.SecureRandom;
 import java.util.EnumMap;
 import java.util.Map;
+
+import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
+import lombok.Getter;
+import lombok.Setter;
 
 @Setter
 @Getter
@@ -16,7 +16,7 @@ public class PlayerRepresentation {
     String username;
     private int publicId;
     private String sessionId;
-    private Color color;
+    private String colorString;
     private final Map<ResourceType, Integer> resources = new EnumMap<>(ResourceType.class);
     private final String chosenPortrait;
     private int points = 0;
@@ -28,6 +28,16 @@ public class PlayerRepresentation {
         // temporary
         SecureRandom random = new SecureRandom();
         this.chosenPortrait = (random.nextInt(2) == 0) ? "KingMale" : "ArcherFemale";
+        this.colorString = generateColorFromUsername(this.username);
+    }
+
+    private String generateColorFromUsername(String username) {
+        int hash = username.hashCode();
+        int red = (hash >> 16) % 0xFF; // Extract red component
+        int green = (hash >> 8) % 0xFF; // Extract green component
+        int blue = hash % 0xFF; // Extract blue component (modulo to ensure it's within 0-255)
+        
+        return String.format("#%02x%02x%02x", red, green, blue); //convert to hex
     }
 
     public void addPoints(int points) {
