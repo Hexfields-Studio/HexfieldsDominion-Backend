@@ -75,11 +75,11 @@ public class BuildingABuildingValidator {
         PlayerRepresentation player = temp.get();
 
         boolean playerHasEnoughResources = true;
-        Map<ResourceType, Integer> recuipe = StructureFactory.getRecipeForStructureType(buildActionDTO.getStructureType());
+        Map<ResourceType, Integer> recipe = StructureFactory.getRecipeForStructureType(buildActionDTO.getStructureType());
         Map<ResourceType, Integer> playersResources = player.getResources();
-        for(ResourceType resource : recuipe.keySet()){
-            int cost = recuipe.get(resource);
-            if(playersResources.get(resource) <= cost){
+        for(Map.Entry<ResourceType, Integer> entry : recipe.entrySet()){
+            int cost = entry.getValue();
+            if(playersResources.get(entry.getKey()) < cost){
                 playerHasEnoughResources = false;
                 break;
             }

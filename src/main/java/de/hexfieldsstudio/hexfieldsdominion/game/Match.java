@@ -119,4 +119,16 @@ public class Match {
     public void buildBuilding(PlayerRepresentation player, BuildActionDTO buildActionDTO){
         gameBoard.addStructure(player, buildActionDTO);
     }
+
+    public void letPlayerPayRecipe(User user, Map<ResourceType, Integer> recipe){
+        Optional<PlayerRepresentation> temp = players.getPlayerForUser(user);
+        if (temp.isEmpty()) return;
+        PlayerRepresentation player = temp.get();
+
+        Map<ResourceType, Integer> playersResources = player.getResources();
+        for(Map.Entry<ResourceType, Integer> entry : recipe.entrySet()){
+            int amount = playersResources.get(entry.getKey()) -  entry.getValue();
+            playersResources.put(entry.getKey(), amount);
+        }
+    }
 }
