@@ -6,12 +6,29 @@ import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.TooLittleSpaceException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
+import lombok.Getter;
 
 import java.security.SecureRandom;
 import java.util.*;
 
 public class StructureFactory {
+
+    @Getter
+    private static final Map<ResourceType, Integer> townRecipe = Map.of(
+            ResourceType.WOOD,  1,
+            ResourceType.BRICK, 1,
+            ResourceType.SHEEP, 1,
+            ResourceType.WHEAT, 1
+    );
+    @Getter
+    private static final Map<ResourceType, Integer> streetRecipe = Map.of(
+            ResourceType.WOOD,  1,
+            ResourceType.BRICK, 1
+    );
+    //private final Map<ResourceType, Integer> castleRecipe;
+
     public static void randomlyBuildInitialStructures(Match match, BuildingABuildingValidator validator) throws TooLittleSpaceException {
         int attempts = 0;
         Set<List<AxialPosition>> corners = Set.copyOf(validator.getCorners());
@@ -55,7 +72,17 @@ public class StructureFactory {
         }
     }
 
+    public static Map<ResourceType, Integer> getRecipeForStructureType(StructureType type) {
+        Map<ResourceType, Integer> recipe = new HashMap<>();
+        switch (type){
+            case TOWN -> recipe = townRecipe;
+            case STREET -> recipe = streetRecipe;
+        }
+        return recipe;
+    }
+
     public static Structure buildStructureFromDTO(PlayerRepresentation player, BuildActionDTO dto){
-        return new Structure(dto.getStructureType(), dto.getPos(), player.getPublicId());
+        return new Structure(dto.getStructureType(), dto.getPos(), player.getPublicId(),
+                getRecipeForStructureType(dto.getStructureType()));
     }
 }
