@@ -37,6 +37,8 @@ public class Match {
     private boolean rolledDiceThisTurn = false;
     @Getter
     private final BuildingABuildingValidator validator;
+    @Getter
+    private final TradingHandler tradingHandler = new TradingHandler();
 
     public Match(UUID uuid, int boardRadius, Lobby lobby) throws TooLittleSpaceException {
         this.uuid = uuid;

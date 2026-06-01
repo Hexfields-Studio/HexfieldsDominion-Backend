@@ -6,6 +6,7 @@ import de.hexfieldsstudio.hexfieldsdominion.game.Match;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.TooLittleSpaceException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 
 import java.security.SecureRandom;
@@ -21,7 +22,17 @@ public class StructureFactory {
                 int rand = new SecureRandom().nextInt(corners.size());
                 List<AxialPosition> townPos = new ArrayList<>(corners).get(rand);
                 BuildActionDTO town = new BuildActionDTO(StructureType.TOWN, townPos);
-                if(!validator.validate(null, match, town)){
+
+                List<Field> foundFields;
+                try {
+                    // make sure all nearby fields have resources and are e.g. not next to water
+                    foundFields = match.getGameBoard().getFieldsAt(townPos);
+                } catch (GameBoard.NotAllFieldsFoundException e) {
+                    i--;
+                    attempts++;
+                    continue;
+                }
+                if(!validator.validate(null, match, town) || foundFields.stream().anyMatch(field -> field.resource() == ResourceType.DUNES)){
                     i--;
                     attempts++;
                     continue;
