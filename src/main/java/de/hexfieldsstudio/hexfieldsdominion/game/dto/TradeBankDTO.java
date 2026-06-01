@@ -10,6 +10,8 @@ import lombok.Setter;
 @Setter
 @Getter
 public class TradeBankDTO extends PlayerActionDTO {
-    private Map<ResourceType, Integer> offered;
-    private Map<ResourceType, Integer> requested;
+    private ResourceType resourceOffered;
+    private int amountOffered;
+    private ResourceType resourceRequested;
+    private int amountRequested;
 }
