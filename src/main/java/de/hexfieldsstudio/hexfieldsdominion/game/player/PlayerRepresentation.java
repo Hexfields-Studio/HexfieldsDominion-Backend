@@ -16,7 +16,7 @@ public class PlayerRepresentation {
     String username;
     private int publicId;
     private String sessionId;
-    private int colorHue;
+    private int playerHue;
     private final Map<ResourceType, Integer> resources = new EnumMap<>(ResourceType.class);
     private final String chosenPortrait;
     private int points = 0;
@@ -25,10 +25,10 @@ public class PlayerRepresentation {
         this.player = player;
         this.username = player.getUsername();
         this.publicId = player.getId();
+        this.playerHue = PlayerHueFactory.generateHueFromHash(this.username);
         // temporary
         SecureRandom random = new SecureRandom();
         this.chosenPortrait = (random.nextInt(2) == 0) ? "KingMale" : "ArcherFemale";
-        this.colorHue = PlayerColorFactory.generateHueFromUsername(this.username);
     }
 
     public void addPoints(int points) {
