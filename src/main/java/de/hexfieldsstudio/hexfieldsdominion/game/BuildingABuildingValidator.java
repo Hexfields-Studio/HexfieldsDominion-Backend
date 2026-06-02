@@ -3,9 +3,11 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Structure;
+import de.hexfieldsstudio.hexfieldsdominion.game.board.StructureFactory;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MissingAxialPositionsException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import lombok.Getter;
 
@@ -47,21 +49,55 @@ public class BuildingABuildingValidator {
     public boolean validate(User user, Match match, BuildActionDTO buildActionDTO) throws MissingAxialPositionsException{
         StructureType type = buildActionDTO.getStructureType();
         if (buildActionDTO.getPos().size() != type.getPosAmount()) throw new MissingAxialPositionsException(type, buildActionDTO.getPos().size());
+
+        if(!playerHasEnoughResourcesToBuild(user, match, buildActionDTO)) return false;
+
         List<AxialPosition> sortedPos = getSortedPosition(buildActionDTO.getPos());
         buildActionDTO.setPos(sortedPos);
 
-        boolean isValid;
+        boolean posIsValid;
         switch (type){
-            case TOWN -> isValid = corners.contains(sortedPos);
-            case STREET -> isValid = edges.contains(sortedPos);
-            default -> isValid = false;
+            case SETTLEMENT, TOWN -> posIsValid = corners.contains(sortedPos);
+            case STREET -> posIsValid = edges.contains(sortedPos);
+            default -> posIsValid = false;
         }
 
-        if (!isValid) return false;
+        if (!posIsValid) return false;
+
+        if (type == StructureType.TOWN) return canUpgradeASettlementHere(user, match, buildActionDTO);
 
         if(!isBuildingSpotFree(match, buildActionDTO)) return false;
 
         return canPlayerBuildHere(user, match, buildActionDTO);
+    }
+
+    private boolean canUpgradeASettlementHere(User user, Match match, BuildActionDTO buildActionDTO){
+        Optional<PlayerRepresentation> temp = match.getPlayers().getPlayerForUser(user);
+        if (temp.isEmpty()) return false;
+        PlayerRepresentation player = temp.get();
+
+        Structure structure = match.getGameBoard().getStructureAt(getSortedPosition(buildActionDTO.getPos()));
+        return structure != null && structure.getType() == StructureType.SETTLEMENT && structure.getOwnerId() == player.getPublicId();
+    }
+
+    private boolean playerHasEnoughResourcesToBuild(User user, Match match, BuildActionDTO buildActionDTO){
+        Optional<PlayerRepresentation> temp = match.getPlayers().getPlayerForUser(user);
+        if (temp.isEmpty()) return true;
+        PlayerRepresentation player = temp.get();
+
+        boolean playerHasEnoughResources = true;
+        Map<ResourceType, Integer> recipe = StructureFactory.getRecipeForStructureType(buildActionDTO.getStructureType());
+        Map<ResourceType, Integer> playersResources = player.getResources();
+        for(Map.Entry<ResourceType, Integer> entry : recipe.entrySet()){
+            int cost = entry.getValue();
+            Integer amount = playersResources.get(entry.getKey());
+            if( amount == null || amount < cost){
+                playerHasEnoughResources = false;
+                break;
+            }
+        }
+
+        return playerHasEnoughResources;
     }
 
     private boolean canPlayerBuildHere(User user, Match match, BuildActionDTO buildActionDTO){
@@ -71,7 +107,7 @@ public class BuildingABuildingValidator {
 
         List<Structure> neighbours = new ArrayList<>();
         switch (buildActionDTO.getStructureType()){
-            case TOWN -> neighbours = getNeighboursToCorner(match, buildActionDTO);
+            case SETTLEMENT -> neighbours = getNeighboursToCorner(match, buildActionDTO);
             case STREET -> neighbours = getNeighboursToEdge(match, buildActionDTO);
         }
 

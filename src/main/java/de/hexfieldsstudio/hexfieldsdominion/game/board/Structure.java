@@ -18,6 +18,7 @@ public class Structure {
     private final List<AxialPosition> pos;
     @Getter
     private final int ownerId;
-    private Map<ResourceType, Integer> recipe;
+    @Getter
+    private final Map<ResourceType, Integer> recipe;
 
 }

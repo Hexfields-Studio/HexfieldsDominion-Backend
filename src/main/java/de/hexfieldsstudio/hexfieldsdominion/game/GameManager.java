@@ -4,6 +4,7 @@ import de.hexfieldsstudio.hexfieldsdominion.SseSender;
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
 import de.hexfieldsstudio.hexfieldsdominion.error.ForbiddenException;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Structure;
+import de.hexfieldsstudio.hexfieldsdominion.game.board.StructureFactory;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradeBankDTO;
@@ -14,6 +15,7 @@ import de.hexfieldsstudio.hexfieldsdominion.game.error.MoveHasntBeenImplementedE
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -67,17 +69,13 @@ public class GameManager extends SseSender<UUID> {
         sendPlayerTrades(allEmitters(gameUUID), match);
     }
 
-    public void addPoints(UUID gameUUID, User user, int points) throws MatchNotFoundException {
-        Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
-
+    public void addPoints(Match match, User user, int points) throws MatchNotFoundException {
         match.getPlayers().getPlayerForUser(user).ifPresent(player -> {
             player.addPoints(points);
 
             if (player.getPoints() >= POINTS_REQUIRED_TO_WIN) {
                 match.getPlayers().setWinner(player);
             }
-
-            sendMatchData(allEmitters(gameUUID), match);
         });
     }
 
@@ -115,7 +113,14 @@ public class GameManager extends SseSender<UUID> {
 
     public void buildBuilding(User user, Match match, BuildActionDTO buildActionDTO) throws InvalidBuildRequestException{
         if(!match.getValidator().validate(user, match, buildActionDTO)) throw new InvalidBuildRequestException();
-        match.buildBuilding(user, buildActionDTO);
+        StructureType type = buildActionDTO.getStructureType();
+        if(type == StructureType.TOWN) match.upgradeSettlementToTown(user, buildActionDTO);
+        else match.buildBuilding(user, buildActionDTO);
+        match.letPlayerPayRecipe(user, StructureFactory.getRecipeForStructureType(type));
+        switch (type) {
+            case SETTLEMENT -> addPoints(match, user, 1);
+            case TOWN -> addPoints(match, user, 2);
+        }
     }
 
     public Optional<Map<ResourceType, Integer>> getGrantedResources(UUID gameUUID, User user) throws MatchNotFoundException {
