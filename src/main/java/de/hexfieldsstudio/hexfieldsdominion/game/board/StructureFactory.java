@@ -16,20 +16,20 @@ import java.util.*;
 @Getter
 public class StructureFactory {
 
-    private static final Map<ResourceType, Integer> settlementRecipe = Map.of(
-            ResourceType.WOOD,  1,
+    private static final EnumMap<ResourceType, Integer> settlementRecipe = new EnumMap<>(Map.of(
+            ResourceType.WOOD, 1,
             ResourceType.BRICK, 1,
             ResourceType.SHEEP, 1,
             ResourceType.WHEAT, 1
-    );
-    private static final Map<ResourceType, Integer> streetRecipe = Map.of(
+    ));
+    private static final EnumMap<ResourceType, Integer> streetRecipe =new EnumMap<>(Map.of(
             ResourceType.WOOD,  1,
             ResourceType.BRICK, 1
-    );
-    private static final Map<ResourceType, Integer> townRecipe = Map.of(
+    ));
+    private static final EnumMap<ResourceType, Integer> townRecipe = new EnumMap<>(Map.of(
             ResourceType.BRICK,  4,
             ResourceType.WHEAT,  2
-    );
+    ));
 
     public static void randomlyBuildInitialStructures(Match match, BuildingABuildingValidator validator) throws TooLittleSpaceException {
         int attempts = 0;
@@ -74,7 +74,7 @@ public class StructureFactory {
         }
     }
 
-    public static Map<ResourceType, Integer> getRecipeForStructureType(StructureType type) {
+    public static EnumMap<ResourceType, Integer> getRecipeForStructureType(StructureType type) {
         switch (type){
             case SETTLEMENT -> {
                 return settlementRecipe;
@@ -86,7 +86,7 @@ public class StructureFactory {
                 return townRecipe;
             }
         }
-        return new HashMap<>();
+        return new EnumMap<>(ResourceType.class);
     }
 
     public static Structure buildStructureFromDTO(PlayerRepresentation player, BuildActionDTO dto){
