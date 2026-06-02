@@ -3,7 +3,6 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 import java.util.*;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
-import de.hexfieldsstudio.hexfieldsdominion.game.board.*;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.TooLittleSpaceException;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
@@ -48,6 +47,13 @@ public class Match {
 
         StructureFactory.randomlyBuildInitialStructures(this, validator);
         this.grantInitialResources();
+
+        Map<ResourceType, Integer> resources = players.getPlayers().getFirst().getResources();
+        resources.put(ResourceType.WOOD, 10);
+        resources.put(ResourceType.BRICK, 10);
+        resources.put(ResourceType.SHEEP, 10);
+        resources.put(ResourceType.WHEAT, 10);
+
     }
 
     public void nextPlayersTurn() {
@@ -57,7 +63,7 @@ public class Match {
 
     private void grantInitialResources() {
         gameBoard.getStructures().stream()
-                .filter(structure -> structure.getType().equals(StructureType.TOWN))
+                .filter(structure -> structure.getType().equals(StructureType.SETTLEMENT))
                 .forEach(structure -> {
                     Optional<PlayerRepresentation> playerOptional = players.getPlayerById(structure.getOwnerId());
                     if (playerOptional.isEmpty()) {
@@ -80,7 +86,7 @@ public class Match {
 
         for (Field field : gameBoard.getFieldsByNumberChip(diceResult)) {
             gameBoard.getStructures().stream()
-                    .filter(structure -> structure.getType().equals(StructureType.TOWN))
+                    .filter(structure -> structure.getType().equals(StructureType.SETTLEMENT))
                     .filter(structure -> structure.getPos().contains(field.pos()))
                     .forEach(structure -> {
                         Optional<PlayerRepresentation> playerOptional = players.getPlayerById(structure.getOwnerId());

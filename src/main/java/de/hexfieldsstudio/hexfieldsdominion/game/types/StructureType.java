@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum StructureType {
-    TOWN(3), HARBOUR(3), STREET(2);
+    SETTLEMENT(3), TOWN(3), STREET(2);
     private final int posAmount;
 
     StructureType(int posAmount){

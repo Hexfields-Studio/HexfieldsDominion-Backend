@@ -16,7 +16,7 @@ import java.util.*;
 public class StructureFactory {
 
     @Getter
-    private static final Map<ResourceType, Integer> townRecipe = Map.of(
+    private static final Map<ResourceType, Integer> settlementRecipe = Map.of(
             ResourceType.WOOD,  1,
             ResourceType.BRICK, 1,
             ResourceType.SHEEP, 1,
@@ -33,18 +33,18 @@ public class StructureFactory {
         int attempts = 0;
         Set<List<AxialPosition>> corners = Set.copyOf(validator.getCorners());
         for (PlayerRepresentation player: match.getPlayers().getPlayers()){
-            for (int i = 0; i < 2; i++){    // Place for each player two "TOWN", each with a "STREET"
+            for (int i = 0; i < 2; i++){    // Place for each player two "SETTLEMENT", each with a "STREET"
                 if (attempts >= 100) throw new TooLittleSpaceException();
                 int rand = new SecureRandom().nextInt(corners.size());
-                List<AxialPosition> townPos = new ArrayList<>(corners).get(rand);
-                BuildActionDTO town = new BuildActionDTO(StructureType.TOWN, townPos);
-                if(!validator.validate(null, match, town)){
+                List<AxialPosition> settlementPos = new ArrayList<>(corners).get(rand);
+                BuildActionDTO settlement = new BuildActionDTO(StructureType.SETTLEMENT, settlementPos);
+                if(!validator.validate(null, match, settlement)){
                     i--;
                     attempts++;
                     continue;
                 }
 
-                List<AxialPosition> findStreetPos = new ArrayList<>(List.copyOf(townPos));   // cornerPos.size() should be 3
+                List<AxialPosition> findStreetPos = new ArrayList<>(List.copyOf(settlementPos));   // cornerPos.size() should be 3
                 Collections.rotate(findStreetPos, new SecureRandom().nextInt(3));
                 boolean foundValidStreetPos = false;
                 BuildActionDTO street = null;
@@ -66,7 +66,7 @@ public class StructureFactory {
                 }
 
                 List<Structure> structures = match.getGameBoard().getStructures();
-                structures.add(buildStructureFromDTO(player, town));
+                structures.add(buildStructureFromDTO(player, settlement));
                 structures.add(buildStructureFromDTO(player, street));
             }
         }
@@ -75,7 +75,7 @@ public class StructureFactory {
     public static Map<ResourceType, Integer> getRecipeForStructureType(StructureType type) {
         Map<ResourceType, Integer> recipe = new HashMap<>();
         switch (type){
-            case TOWN -> recipe = townRecipe;
+            case SETTLEMENT -> recipe = settlementRecipe;
             case STREET -> recipe = streetRecipe;
         }
         return recipe;

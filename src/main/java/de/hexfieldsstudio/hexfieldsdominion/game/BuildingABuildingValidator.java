@@ -57,7 +57,7 @@ public class BuildingABuildingValidator {
 
         boolean isValid;
         switch (type){
-            case TOWN -> isValid = corners.contains(sortedPos);
+            case SETTLEMENT -> isValid = corners.contains(sortedPos);
             case STREET -> isValid = edges.contains(sortedPos);
             default -> isValid = false;
         }
@@ -79,7 +79,8 @@ public class BuildingABuildingValidator {
         Map<ResourceType, Integer> playersResources = player.getResources();
         for(Map.Entry<ResourceType, Integer> entry : recipe.entrySet()){
             int cost = entry.getValue();
-            if(playersResources.get(entry.getKey()) < cost){
+            Integer amount = playersResources.get(entry.getKey());
+            if( amount == null || amount < cost){
                 playerHasEnoughResources = false;
                 break;
             }
@@ -95,7 +96,7 @@ public class BuildingABuildingValidator {
 
         List<Structure> neighbours = new ArrayList<>();
         switch (buildActionDTO.getStructureType()){
-            case TOWN -> neighbours = getNeighboursToCorner(match, buildActionDTO);
+            case SETTLEMENT -> neighbours = getNeighboursToCorner(match, buildActionDTO);
             case STREET -> neighbours = getNeighboursToEdge(match, buildActionDTO);
         }
 
