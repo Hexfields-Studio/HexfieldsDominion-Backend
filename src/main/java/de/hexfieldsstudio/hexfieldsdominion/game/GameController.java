@@ -13,11 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
-import de.hexfieldsstudio.hexfieldsdominion.game.dto.PickDicePairDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
-import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradeBankDTO;
-import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradePlayerDTO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.*;
