@@ -7,6 +7,7 @@ import de.hexfieldsstudio.hexfieldsdominion.game.board.Structure;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradeBankDTO;
+import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradePlayerDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.InvalidBuildRequestException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MoveHasntBeenImplementedException;
@@ -63,6 +64,7 @@ public class GameManager extends SseSender<UUID> {
         match.nextPlayersTurn();
 
         sendMatchData(allEmitters(gameUUID), match);
+        sendPlayerTrades(allEmitters(gameUUID), match);
     }
 
     public void addPoints(UUID gameUUID, User user, int points) throws MatchNotFoundException {
@@ -100,6 +102,13 @@ public class GameManager extends SseSender<UUID> {
                 match.getTradingHandler().tradeBank(user, match, tradeBankDTO);
                 sendMatchData(allEmitters(gameUUID), match);
             }
+            case TRADE_PLAYER -> {
+                Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
+                TradePlayerDTO tradePlayerDTO = (TradePlayerDTO) request;
+                match.getTradingHandler().handlePlayerTrade(user, match, tradePlayerDTO);
+                sendMatchData(allEmitters(gameUUID), match);
+                sendPlayerTrades(allEmitters(gameUUID), match);
+            }
             default -> throw new MoveHasntBeenImplementedException(request.getType());
         }
     }
@@ -125,6 +134,7 @@ public class GameManager extends SseSender<UUID> {
         SseEmitter emitter = createEmitter(username, gameUUID);
 
         sendMatchData(emittersOfOnly(gameUUID, username), match);
+        sendPlayerTrades(emittersOfOnly(gameUUID, username), match);
 
         return emitter;
     }
@@ -138,6 +148,10 @@ public class GameManager extends SseSender<UUID> {
 
     private void sendMatchData(Map<String, SseEmitter> emitters, Match match) {
         sendEvent(emitters, "matchData", new MatchData(match), match.getUuid());
+    }
+
+    private void sendPlayerTrades(Map<String, SseEmitter> emitters, Match match) {
+        sendEvent(emitters, "playerTrades", match.getTradingHandler().getPlayerTrades().values(), match.getUuid());
     }
 
     private record MatchData(

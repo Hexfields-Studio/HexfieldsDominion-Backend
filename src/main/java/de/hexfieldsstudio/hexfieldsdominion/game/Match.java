@@ -3,7 +3,6 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 import java.util.*;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.user.User;
-import de.hexfieldsstudio.hexfieldsdominion.game.board.*;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.TooLittleSpaceException;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
@@ -11,6 +10,7 @@ import de.hexfieldsstudio.hexfieldsdominion.game.board.GameBoard;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.GamePlayers;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.StructureFactory;
+import de.hexfieldsstudio.hexfieldsdominion.game.trading.TradingHandler;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
@@ -55,6 +55,7 @@ public class Match {
     public void nextPlayersTurn() {
         players.rotateNextPlayer();
         rolledDiceThisTurn = false;
+        tradingHandler.clearTrades();
     }
 
     private void grantInitialResources() {
