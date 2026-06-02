@@ -65,33 +65,11 @@ public class GameController {
         return resourcesOptional.get();
     }
 
-    // temporary, should be done when building siedlung/stadt
-    @PostMapping("/{gameUUID}/addPoint")
-    public void addPoint(@PathVariable UUID gameUUID) throws MatchNotFoundException, NotPlayersTurnException {
-        gameManager.addPoints(gameUUID, AuthUtils.getAuthenticatedUser(), 1);
-    }
-
     @PostMapping("/{gameUUID}/makeMove")
     private void playerAction(@PathVariable UUID gameUUID,
                               @RequestBody PlayerActionDTO request
     ) throws InvalidBuildRequestException, MoveHasntBeenImplementedException {
         gameManager.handlePlayerAction(gameUUID, AuthUtils.getAuthenticatedUser(), request);
-    }
-
-    private void buildStructure(BuildActionDTO dto) {
-
-    }
-
-    private void tradeWithBank(TradeBankDTO dto) {
-
-    }
-
-    private void tradeWithPlayer(TradePlayerDTO dto) {
-
-    }
-
-    private void pickDicePair(PickDicePairDTO dto) {
-        
     }
 
     public record LobbyCodeResponse(String lobbyCode) {

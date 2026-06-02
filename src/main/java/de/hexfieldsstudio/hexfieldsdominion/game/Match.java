@@ -49,10 +49,10 @@ public class Match {
         this.grantInitialResources();
 
         Map<ResourceType, Integer> resources = players.getPlayers().getFirst().getResources();
-        resources.put(ResourceType.WOOD, 10);
-        resources.put(ResourceType.BRICK, 10);
-        resources.put(ResourceType.SHEEP, 10);
-        resources.put(ResourceType.WHEAT, 10);
+        resources.put(ResourceType.WOOD, 100);
+        resources.put(ResourceType.BRICK, 100);
+        resources.put(ResourceType.SHEEP, 100);
+        resources.put(ResourceType.WHEAT, 100);
 
     }
 
