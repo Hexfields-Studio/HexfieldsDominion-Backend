@@ -2,10 +2,12 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
+import de.hexfieldsstudio.hexfieldsdominion.game.board.StructureFactory;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.InvalidBuildRequestException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MoveHasntBeenImplementedException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
@@ -13,11 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
-import de.hexfieldsstudio.hexfieldsdominion.game.dto.PickDicePairDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
-import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradeBankDTO;
-import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradePlayerDTO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.*;
@@ -38,6 +36,15 @@ public class GameController {
     @GetMapping("/{gameUUID}/fields")
     public List<Field> fields(@PathVariable UUID gameUUID) throws MatchNotFoundException {
         return lobbyManager.findLobbyByMatch(gameUUID).getMatch().getGameBoard().getFields();
+    }
+
+    @GetMapping("/recipes")
+    public EnumMap<StructureType, EnumMap<ResourceType, Integer>> recipes() {
+        return new EnumMap<>(Map.of(
+                StructureType.TOWN, StructureFactory.getRecipeForStructureType(StructureType.TOWN),
+                StructureType.SETTLEMENT, StructureFactory.getRecipeForStructureType(StructureType.SETTLEMENT),
+                StructureType.STREET, StructureFactory.getRecipeForStructureType(StructureType.STREET)
+        ));
     }
 
     @GetMapping("/{gameUUID}/events")
@@ -65,33 +72,11 @@ public class GameController {
         return resourcesOptional.get();
     }
 
-    // temporary, should be done when building siedlung/stadt
-    @PostMapping("/{gameUUID}/addPoint")
-    public void addPoint(@PathVariable UUID gameUUID) throws MatchNotFoundException, NotPlayersTurnException {
-        gameManager.addPoints(gameUUID, AuthUtils.getAuthenticatedUser(), 1);
-    }
-
     @PostMapping("/{gameUUID}/makeMove")
     private void playerAction(@PathVariable UUID gameUUID,
                               @RequestBody PlayerActionDTO request
     ) throws InvalidBuildRequestException, MoveHasntBeenImplementedException {
         gameManager.handlePlayerAction(gameUUID, AuthUtils.getAuthenticatedUser(), request);
-    }
-
-    private void buildStructure(BuildActionDTO dto) {
-
-    }
-
-    private void tradeWithBank(TradeBankDTO dto) {
-
-    }
-
-    private void tradeWithPlayer(TradePlayerDTO dto) {
-
-    }
-
-    private void pickDicePair(PickDicePairDTO dto) {
-        
     }
 
     public record LobbyCodeResponse(String lobbyCode) {

@@ -32,6 +32,13 @@ public class GameBoard {
         this.structures.add(StructureFactory.buildStructureFromDTO(player, buildActionDTO));
     }
 
+    public void upgradeSettlementToTown(PlayerRepresentation player, BuildActionDTO buildActionDTO){
+        Structure settlement = getStructureAt(buildActionDTO.getPos());
+        if(settlement == null) return;
+        this.structures.remove(settlement);
+        this.structures.add(StructureFactory.buildStructureFromDTO(player, buildActionDTO));
+    }
+
     public List<Field> getFieldsAt(List<AxialPosition> positions) throws NotAllFieldsFoundException {
         List<Field> fieldsFound = new ArrayList<>();
         for (Field field : fields) {
