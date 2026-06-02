@@ -7,6 +7,8 @@ import de.hexfieldsstudio.hexfieldsdominion.game.board.Structure;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.StructureFactory;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.BuildActionDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.dto.PlayerActionDTO;
+import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradeBankDTO;
+import de.hexfieldsstudio.hexfieldsdominion.game.dto.TradePlayerDTO;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.InvalidBuildRequestException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MoveHasntBeenImplementedException;
@@ -49,7 +51,7 @@ public class GameManager extends SseSender<UUID> {
 
         match.setCurrentDiceResult(new Integer[]{value1, value2});
 
-        sendMatchData(allEmitters(gameUUID), match);
+        sendEvent(allEmitters(gameUUID), "rollDice", new MatchData(match), gameUUID);
 
         // add resources. Updating will happen on client request so it doesn't happen during the dice animation
         match.grantResourcesForDiceResult(value1 + value2);
@@ -64,6 +66,7 @@ public class GameManager extends SseSender<UUID> {
         match.nextPlayersTurn();
 
         sendMatchData(allEmitters(gameUUID), match);
+        sendPlayerTrades(allEmitters(gameUUID), match);
     }
 
     public void addPoints(Match match, User user, int points) throws MatchNotFoundException {
@@ -79,7 +82,7 @@ public class GameManager extends SseSender<UUID> {
     public void handlePlayerAction(UUID gameUUID, User user, PlayerActionDTO request)
             throws InvalidBuildRequestException, MoveHasntBeenImplementedException {
         switch (request.getType()){
-            case BUILD ->  {
+            case BUILD -> {
                 Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
                 if (!match.getPlayers().isPlayersTurn(user)) {
                     throw new NotPlayersTurnException();
@@ -87,6 +90,22 @@ public class GameManager extends SseSender<UUID> {
                 BuildActionDTO buildActionDTO = (BuildActionDTO) request;
                 buildBuilding(user, match, buildActionDTO);
                 sendMatchData(allEmitters(gameUUID), match);
+            }
+            case TRADE_BANK -> {
+                Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
+                if (!match.getPlayers().isPlayersTurn(user)) {
+                    throw new NotPlayersTurnException();
+                }
+                TradeBankDTO tradeBankDTO = (TradeBankDTO) request;
+                match.getTradingHandler().tradeBank(user, match, tradeBankDTO);
+                sendMatchData(allEmitters(gameUUID), match);
+            }
+            case TRADE_PLAYER -> {
+                Match match = lobbyManager.findLobbyByMatch(gameUUID).getMatch();
+                TradePlayerDTO tradePlayerDTO = (TradePlayerDTO) request;
+                match.getTradingHandler().handlePlayerTrade(user, match, tradePlayerDTO);
+                sendMatchData(allEmitters(gameUUID), match);
+                sendPlayerTrades(allEmitters(gameUUID), match);
             }
             default -> throw new MoveHasntBeenImplementedException(request.getType());
         }
@@ -120,6 +139,7 @@ public class GameManager extends SseSender<UUID> {
         SseEmitter emitter = createEmitter(username, gameUUID);
 
         sendMatchData(emittersOfOnly(gameUUID, username), match);
+        sendPlayerTrades(emittersOfOnly(gameUUID, username), match);
 
         return emitter;
     }
@@ -133,6 +153,10 @@ public class GameManager extends SseSender<UUID> {
 
     private void sendMatchData(Map<String, SseEmitter> emitters, Match match) {
         sendEvent(emitters, "matchData", new MatchData(match), match.getUuid());
+    }
+
+    private void sendPlayerTrades(Map<String, SseEmitter> emitters, Match match) {
+        sendEvent(emitters, "playerTrades", match.getTradingHandler().getPlayerTrades().values(), match.getUuid());
     }
 
     private record MatchData(
@@ -154,4 +178,5 @@ public class GameManager extends SseSender<UUID> {
             );
         }
     }
+
 }

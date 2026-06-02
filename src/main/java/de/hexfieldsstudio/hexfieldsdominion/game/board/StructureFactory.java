@@ -38,7 +38,17 @@ public class StructureFactory {
                 int rand = new SecureRandom().nextInt(corners.size());
                 List<AxialPosition> settlementPos = new ArrayList<>(corners).get(rand);
                 BuildActionDTO settlement = new BuildActionDTO(StructureType.SETTLEMENT, settlementPos);
-                if(!validator.validate(null, match, settlement)){
+
+                List<Field> foundFields;
+                try {
+                    // make sure all nearby fields have resources and are e.g. not next to water
+                    foundFields = match.getGameBoard().getFieldsAt(settlementPos);
+                } catch (GameBoard.NotAllFieldsFoundException e) {
+                    i--;
+                    attempts++;
+                    continue;
+                }
+                if(!validator.validate(null, match, settlement) || foundFields.stream().anyMatch(field -> field.resource() == ResourceType.DUNES)){
                     i--;
                     attempts++;
                     continue;

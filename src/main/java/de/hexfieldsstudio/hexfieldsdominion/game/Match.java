@@ -10,6 +10,7 @@ import de.hexfieldsstudio.hexfieldsdominion.game.board.GameBoard;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.GamePlayers;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.StructureFactory;
+import de.hexfieldsstudio.hexfieldsdominion.game.trading.TradingHandler;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
@@ -36,6 +37,8 @@ public class Match {
     private boolean rolledDiceThisTurn = false;
     @Getter
     private final BuildingABuildingValidator validator;
+    @Getter
+    private final TradingHandler tradingHandler = new TradingHandler();
 
     public Match(UUID uuid, int boardRadius, Lobby lobby) throws TooLittleSpaceException {
         this.uuid = uuid;
@@ -52,6 +55,7 @@ public class Match {
     public void nextPlayersTurn() {
         players.rotateNextPlayer();
         rolledDiceThisTurn = false;
+        tradingHandler.clearTrades();
     }
 
     private void grantInitialResources() {
