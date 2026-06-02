@@ -47,13 +47,6 @@ public class Match {
 
         StructureFactory.randomlyBuildInitialStructures(this, validator);
         this.grantInitialResources();
-
-        Map<ResourceType, Integer> resources = players.getPlayers().getFirst().getResources();
-        resources.put(ResourceType.WOOD, 100);
-        resources.put(ResourceType.BRICK, 100);
-        resources.put(ResourceType.SHEEP, 100);
-        resources.put(ResourceType.WHEAT, 100);
-
     }
 
     public void nextPlayersTurn() {

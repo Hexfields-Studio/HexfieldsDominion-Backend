@@ -8,12 +8,10 @@ import de.hexfieldsstudio.hexfieldsdominion.game.error.TooLittleSpaceException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
-import lombok.Getter;
 
 import java.security.SecureRandom;
 import java.util.*;
 
-@Getter
 public class StructureFactory {
 
     private static final EnumMap<ResourceType, Integer> settlementRecipe = new EnumMap<>(Map.of(

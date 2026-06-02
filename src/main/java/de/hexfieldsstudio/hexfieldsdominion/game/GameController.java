@@ -2,10 +2,12 @@ package de.hexfieldsstudio.hexfieldsdominion.game;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.AuthUtils;
 import de.hexfieldsstudio.hexfieldsdominion.game.board.Field;
+import de.hexfieldsstudio.hexfieldsdominion.game.board.StructureFactory;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.InvalidBuildRequestException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MoveHasntBeenImplementedException;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.Lobby;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
@@ -34,6 +36,15 @@ public class GameController {
     @GetMapping("/{gameUUID}/fields")
     public List<Field> fields(@PathVariable UUID gameUUID) throws MatchNotFoundException {
         return lobbyManager.findLobbyByMatch(gameUUID).getMatch().getGameBoard().getFields();
+    }
+
+    @GetMapping("/recipes")
+    public EnumMap<StructureType, EnumMap<ResourceType, Integer>> recipes() {
+        return new EnumMap<>(Map.of(
+                StructureType.TOWN, StructureFactory.getRecipeForStructureType(StructureType.TOWN),
+                StructureType.SETTLEMENT, StructureFactory.getRecipeForStructureType(StructureType.SETTLEMENT),
+                StructureType.STREET, StructureFactory.getRecipeForStructureType(StructureType.STREET)
+        ));
     }
 
     @GetMapping("/{gameUUID}/events")
