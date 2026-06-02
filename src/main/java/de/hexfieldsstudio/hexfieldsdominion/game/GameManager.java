@@ -13,6 +13,7 @@ import de.hexfieldsstudio.hexfieldsdominion.game.error.MoveHasntBeenImplementedE
 import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
 import de.hexfieldsstudio.hexfieldsdominion.game.player.PlayerRepresentation;
 import de.hexfieldsstudio.hexfieldsdominion.game.types.ResourceType;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.LobbyManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -97,7 +98,8 @@ public class GameManager extends SseSender<UUID> {
 
     public void buildBuilding(User user, Match match, BuildActionDTO buildActionDTO) throws InvalidBuildRequestException{
         if(!match.getValidator().validate(user, match, buildActionDTO)) throw new InvalidBuildRequestException();
-        match.buildBuilding(user, buildActionDTO);
+        if(buildActionDTO.getStructureType() == StructureType.TOWN) match.upgradeSettlementToTown(user, buildActionDTO);
+        else match.buildBuilding(user, buildActionDTO);
         match.letPlayerPayRecipe(user, StructureFactory.getRecipeForStructureType(buildActionDTO.getStructureType()));
     }
 

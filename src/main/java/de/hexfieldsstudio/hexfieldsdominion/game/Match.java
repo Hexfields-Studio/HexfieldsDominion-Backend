@@ -126,6 +126,17 @@ public class Match {
         gameBoard.addStructure(player, buildActionDTO);
     }
 
+    public void upgradeSettlementToTown(User user, BuildActionDTO buildActionDTO){
+        this.players.getPlayerForUser(user).ifPresentOrElse(
+                player -> this.upgradeSettlementToTown(player, buildActionDTO),
+                () -> System.out.println("Player " + user.getUsername() + " not found")
+        );
+    }
+
+    public void upgradeSettlementToTown(PlayerRepresentation player, BuildActionDTO buildActionDTO){
+        gameBoard.upgradeSettlementToTown(player, buildActionDTO);
+    }
+
     public void letPlayerPayRecipe(User user, Map<ResourceType, Integer> recipe){
         Optional<PlayerRepresentation> temp = players.getPlayerForUser(user);
         if (temp.isEmpty()) return;

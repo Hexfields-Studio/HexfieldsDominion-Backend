@@ -13,21 +13,23 @@ import lombok.Getter;
 import java.security.SecureRandom;
 import java.util.*;
 
+@Getter
 public class StructureFactory {
 
-    @Getter
     private static final Map<ResourceType, Integer> settlementRecipe = Map.of(
             ResourceType.WOOD,  1,
             ResourceType.BRICK, 1,
             ResourceType.SHEEP, 1,
             ResourceType.WHEAT, 1
     );
-    @Getter
     private static final Map<ResourceType, Integer> streetRecipe = Map.of(
             ResourceType.WOOD,  1,
             ResourceType.BRICK, 1
     );
-    //private final Map<ResourceType, Integer> castleRecipe;
+    private static final Map<ResourceType, Integer> townRecipe = Map.of(
+            ResourceType.BRICK,  4,
+            ResourceType.WHEAT,  2
+    );
 
     public static void randomlyBuildInitialStructures(Match match, BuildingABuildingValidator validator) throws TooLittleSpaceException {
         int attempts = 0;
@@ -73,12 +75,18 @@ public class StructureFactory {
     }
 
     public static Map<ResourceType, Integer> getRecipeForStructureType(StructureType type) {
-        Map<ResourceType, Integer> recipe = new HashMap<>();
         switch (type){
-            case SETTLEMENT -> recipe = settlementRecipe;
-            case STREET -> recipe = streetRecipe;
+            case SETTLEMENT -> {
+                return settlementRecipe;
+            }
+            case STREET -> {
+                return streetRecipe;
+            }
+            case TOWN -> {
+                return townRecipe;
+            }
         }
-        return recipe;
+        return new HashMap<>();
     }
 
     public static Structure buildStructureFromDTO(PlayerRepresentation player, BuildActionDTO dto){

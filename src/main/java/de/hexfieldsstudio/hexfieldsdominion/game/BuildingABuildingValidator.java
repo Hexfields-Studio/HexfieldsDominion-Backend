@@ -55,18 +55,29 @@ public class BuildingABuildingValidator {
         List<AxialPosition> sortedPos = getSortedPosition(buildActionDTO.getPos());
         buildActionDTO.setPos(sortedPos);
 
-        boolean isValid;
+        boolean posIsValid;
         switch (type){
-            case SETTLEMENT -> isValid = corners.contains(sortedPos);
-            case STREET -> isValid = edges.contains(sortedPos);
-            default -> isValid = false;
+            case SETTLEMENT, TOWN -> posIsValid = corners.contains(sortedPos);
+            case STREET -> posIsValid = edges.contains(sortedPos);
+            default -> posIsValid = false;
         }
 
-        if (!isValid) return false;
+        if (!posIsValid) return false;
+
+        if (type == StructureType.TOWN) return canUpgradeASettlementHere(user, match, buildActionDTO);
 
         if(!isBuildingSpotFree(match, buildActionDTO)) return false;
 
         return canPlayerBuildHere(user, match, buildActionDTO);
+    }
+
+    private boolean canUpgradeASettlementHere(User user, Match match, BuildActionDTO buildActionDTO){
+        Optional<PlayerRepresentation> temp = match.getPlayers().getPlayerForUser(user);
+        if (temp.isEmpty()) return false;
+        PlayerRepresentation player = temp.get();
+
+        Structure structure = match.getGameBoard().getStructureAt(getSortedPosition(buildActionDTO.getPos()));
+        return structure != null && structure.getType() == StructureType.SETTLEMENT && structure.getOwnerId() == player.getPublicId();
     }
 
     private boolean playerHasEnoughResourcesToBuild(User user, Match match, BuildActionDTO buildActionDTO){
