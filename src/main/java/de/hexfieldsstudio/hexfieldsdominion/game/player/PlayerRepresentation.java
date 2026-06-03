@@ -29,6 +29,11 @@ public class PlayerRepresentation {
         // temporary
         SecureRandom random = new SecureRandom();
         this.chosenPortrait = (random.nextInt(2) == 0) ? "KingMale" : "ArcherFemale";
+
+        resources.put(ResourceType.WOOD,  15);
+        resources.put(ResourceType.BRICK, 15);
+        resources.put(ResourceType.SHEEP, 15);
+        resources.put(ResourceType.WHEAT, 15);
     }
 
     public void addPoints(int points) {
