@@ -15,7 +15,7 @@ import java.util.*;
 
 public class TradingHandler {
 
-    private static final int GIVE_GET_RATIO = 4; // (e.g. give:get 4:1 -> 4 / 1)
+    public static final int GIVE_GET_RATIO = 4; // (e.g. give:get 4:1 -> 4 / 1)
 
     @Getter
     private final Map<Integer, PlayerTrade> playerTrades = new HashMap<>();

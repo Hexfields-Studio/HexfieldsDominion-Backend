@@ -29,11 +29,6 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         return responseOf(HttpServletResponse.SC_BAD_REQUEST, exception);
     }
 
-    @ExceptionHandler(InvalidTypeIdException.class)
-    public ResponseEntity<@NonNull String> handleInvalidType(InvalidTypeIdException exception) {
-        return ResponseEntity.badRequest().body("Unknown DTO type.");
-    }
-
     private ResponseEntity<@NonNull ErrorResponse> responseOf(int status, Exception exception) {
         return ResponseEntity
                 .status(status)

@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -315,10 +316,8 @@ class AuthenticationServiceIT {
         @Override
         @NullMarked
         public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
-            return Stream.of(
-                    Arguments.of(Role.GUEST),
-                    Arguments.of(Role.PLAYER)
-            );
+            return Arrays.stream(Role.values())
+                    .map(Arguments::of);
         }
     }
 
