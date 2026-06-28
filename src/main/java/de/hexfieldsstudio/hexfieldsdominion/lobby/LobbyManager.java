@@ -160,7 +160,7 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
             this(new CreatedPlayer(player), lobby.isOwner(player.getUsername()));
         }
 
-        private record CreatedPlayer(String username, int id, boolean isAccount) {
+        public record CreatedPlayer(String username, int id, boolean isAccount) {
             public CreatedPlayer(Player player) {
                 this(player.getUsername(), player.getId(), player.isAccount());
             }

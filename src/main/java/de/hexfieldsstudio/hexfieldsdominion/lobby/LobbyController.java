@@ -60,9 +60,11 @@ public class LobbyController {
     }
 
     @PostMapping("/{lobbyCode}/heartbeat")
-    public void heartbeat(@PathVariable String lobbyCode, @RequestBody HeartbeatDTO dto) throws LobbyNotFoundException {
+    public void heartbeat(@PathVariable String lobbyCode, @RequestBody HeartbeatDTO dto, HttpServletResponse response) throws LobbyNotFoundException {
         Lobby lobby = lobbyManager.findOccupiedLobbyOrThrow(lobbyCode);
         lobby.getHeartbeatHandler().resetTimer(dto.playerId());
+
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 
     @GetMapping("/{lobbyCode}/events")
