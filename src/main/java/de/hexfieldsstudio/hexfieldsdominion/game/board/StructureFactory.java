@@ -34,7 +34,7 @@ public class StructureFactory {
         Set<List<AxialPosition>> corners = Set.copyOf(validator.getCorners());
         for (PlayerRepresentation player: match.getPlayers().getPlayers()){
             for (int i = 0; i < 2; i++){    // Place for each player two "SETTLEMENT", each with a "STREET"
-                if (attempts >= 100) throw new TooLittleSpaceException();
+                if (attempts >= 500) throw new TooLittleSpaceException();
                 int rand = new SecureRandom().nextInt(corners.size());
                 List<AxialPosition> settlementPos = new ArrayList<>(corners).get(rand);
                 BuildActionDTO settlement = new BuildActionDTO(StructureType.SETTLEMENT, settlementPos);

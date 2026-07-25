@@ -227,7 +227,7 @@ public class LobbyControllerTest {
         when(match.getUuid()).thenReturn(UUID.randomUUID());
 
         when(lobbyManager.findOccupiedLobbyOrThrow(LOBBY_CODE)).thenReturn(existingLobby);
-        when(lobbyManager.createMatchForLobby(existingLobby, user)).thenReturn(match);
+        when(lobbyManager.createMatchForLobby(existingLobby, user, LobbyController.BOARD_RADIUS)).thenReturn(match);
 
         try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
             authUtils.when(AuthUtils::getAuthenticatedUser).thenReturn(user);
