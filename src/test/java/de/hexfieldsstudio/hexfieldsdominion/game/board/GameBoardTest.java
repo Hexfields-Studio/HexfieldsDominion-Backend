@@ -132,7 +132,7 @@ public class GameBoardTest {
     void testGetFieldsNotAllExist() {
         AxialPosition pos = AxialPosition.of(5, 5);
 
-        assertThrows(GameBoard.NotAllFieldsFoundException.class, () -> gameBoard.getFieldsAt(List.of(pos)));
+        assertThrowsExactly(GameBoard.NotAllFieldsFoundException.class, () -> gameBoard.getFieldsAt(List.of(pos)));
     }
 
     @ParameterizedTest

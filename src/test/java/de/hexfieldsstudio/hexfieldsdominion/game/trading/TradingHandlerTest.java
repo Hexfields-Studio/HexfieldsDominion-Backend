@@ -338,7 +338,7 @@ public class TradingHandlerTest {
         int amountOffered = 2;
         TradeBankDTO tradeBankDTO = MockObjects.tradeBankDto(amountRequested, amountOffered);
 
-        assertThrows(BadRequestException.class, () -> tradingHandler.tradeBank(user, match, tradeBankDTO));
+        assertThrowsExactly(BadRequestException.class, () -> tradingHandler.tradeBank(user, match, tradeBankDTO));
     }
 
     @ParameterizedTest
@@ -365,7 +365,7 @@ public class TradingHandlerTest {
         int amountOffered = amountRequested * TradingHandler.GIVE_GET_RATIO;
         TradeBankDTO tradeBankDTO = MockObjects.tradeBankDto(amountRequested, amountOffered);
 
-        assertThrows(NotEnoughResourcesException.class, () -> tradingHandler.tradeBank(user, match, tradeBankDTO));
+        assertThrowsExactly(NotEnoughResourcesException.class, () -> tradingHandler.tradeBank(user, match, tradeBankDTO));
     }
 
     @Test

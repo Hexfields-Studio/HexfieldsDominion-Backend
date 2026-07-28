@@ -142,7 +142,7 @@ public class LobbyControllerTest {
         try (MockedStatic<AuthUtils> authUtils = mockStatic(AuthUtils.class)) {
             authUtils.when(AuthUtils::getAuthenticatedUser).thenReturn(user);
 
-            assertThrows(LobbyNotFoundException.class, () -> lobbyController.joinLobby(LOBBY_CODE));
+            assertThrowsExactly(LobbyNotFoundException.class, () -> lobbyController.joinLobby(LOBBY_CODE));
         }
     }
 
@@ -165,7 +165,7 @@ public class LobbyControllerTest {
 
         when(lobbyManager.findOccupiedLobbyOrThrow(LOBBY_CODE)).thenThrow(new LobbyNotFoundException(LOBBY_CODE));
 
-        assertThrows(LobbyNotFoundException.class, () -> lobbyController.doesLobbyWithCodeExist(LOBBY_CODE, response));
+        assertThrowsExactly(LobbyNotFoundException.class, () -> lobbyController.doesLobbyWithCodeExist(LOBBY_CODE, response));
     }
 
     @Test
@@ -193,7 +193,7 @@ public class LobbyControllerTest {
 
         when(lobbyManager.findOccupiedLobbyOrThrow(LOBBY_CODE)).thenThrow(new LobbyNotFoundException(LOBBY_CODE));
 
-        assertThrows(LobbyNotFoundException.class, () -> lobbyController.heartbeat(LOBBY_CODE, dto, response));
+        assertThrowsExactly(LobbyNotFoundException.class, () -> lobbyController.heartbeat(LOBBY_CODE, dto, response));
     }
 
     @Test
@@ -242,7 +242,7 @@ public class LobbyControllerTest {
     void testMatchLobbyDoesNotExist() {
         when(lobbyManager.findOccupiedLobbyOrThrow(LOBBY_CODE)).thenThrow(new LobbyNotFoundException(LOBBY_CODE));
 
-        assertThrows(LobbyNotFoundException.class, () -> lobbyController.match(LOBBY_CODE));
+        assertThrowsExactly(LobbyNotFoundException.class, () -> lobbyController.match(LOBBY_CODE));
     }
 
 }

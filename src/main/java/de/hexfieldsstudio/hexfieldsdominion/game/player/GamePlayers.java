@@ -26,7 +26,8 @@ public class GamePlayers {
     }
 
     private List<PlayerRepresentation> createPlayerRepresentationsForLobby(Lobby lobby) {
-        return lobby.getPlayers().stream()
+        // new ArrayList to prevent ConcurrentModificationException
+        return new ArrayList<>(lobby.getPlayers()).stream()
                 .map(PlayerRepresentation::new)
                 .toList();
     }
