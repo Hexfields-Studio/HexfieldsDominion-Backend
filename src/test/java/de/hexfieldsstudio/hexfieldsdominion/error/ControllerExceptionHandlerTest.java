@@ -2,8 +2,10 @@ package de.hexfieldsstudio.hexfieldsdominion.error;
 
 import de.hexfieldsstudio.hexfieldsdominion.account.error.InvalidCharactersException;
 import de.hexfieldsstudio.hexfieldsdominion.account.error.UserAlreadyExistsException;
-import de.hexfieldsstudio.hexfieldsdominion.game.error.MatchNotFoundException;
-import de.hexfieldsstudio.hexfieldsdominion.game.error.NotPlayersTurnException;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.*;
+import de.hexfieldsstudio.hexfieldsdominion.game.error.NotEnoughResourcesException;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.PlayerActionType;
+import de.hexfieldsstudio.hexfieldsdominion.game.types.StructureType;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.InvalidRadiusException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.LobbyNotFoundException;
 import de.hexfieldsstudio.hexfieldsdominion.lobby.error.NotOwnerOfLobbyException;
@@ -89,7 +91,13 @@ class ControllerExceptionHandlerTest {
                     Arguments.of(new InvalidCharactersException()),
                     Arguments.of(new InvalidCharactersException()),
                     Arguments.of(new UserAlreadyExistsException()),
-                    Arguments.of(new InvalidRadiusException(0))
+                    Arguments.of(new InvalidRadiusException(0)),
+                    Arguments.of(new InvalidBuildRequestException()),
+                    Arguments.of(new TooLittleSpaceException()),
+                    Arguments.of(new NotEnoughResourcesException()),
+                    Arguments.of(new MoveHasntBeenImplementedException(PlayerActionType.BUILD)),
+                    Arguments.of(new MissingAxialPositionsException(StructureType.SETTLEMENT, 1)),
+                    Arguments.of(new InvalidDtoException(""))
             );
         }
     }

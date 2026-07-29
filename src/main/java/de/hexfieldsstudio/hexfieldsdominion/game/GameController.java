@@ -29,7 +29,7 @@ public class GameController {
     private final GameManager gameManager;
 
     @GetMapping("/{gameUUID}/lobby")
-    private LobbyCodeResponse lobby(@PathVariable UUID gameUUID) throws MatchNotFoundException {
+    public LobbyCodeResponse lobby(@PathVariable UUID gameUUID) throws MatchNotFoundException {
         return new LobbyCodeResponse(lobbyManager.findLobbyByMatch(gameUUID));
     }
 
@@ -73,7 +73,7 @@ public class GameController {
     }
 
     @PostMapping("/{gameUUID}/makeMove")
-    private void playerAction(@PathVariable UUID gameUUID,
+    public void playerAction(@PathVariable UUID gameUUID,
                               @RequestBody PlayerActionDTO request
     ) throws InvalidBuildRequestException, MoveHasntBeenImplementedException {
         gameManager.handlePlayerAction(gameUUID, AuthUtils.getAuthenticatedUser(), request);

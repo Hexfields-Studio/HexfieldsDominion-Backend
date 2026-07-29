@@ -95,12 +95,11 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
         sendEvent(allEmitters(lobbyCode), "lobbyUpdate", players, lobbyCode);
     }
 
-    public Match createMatchForLobby(Lobby lobby, User user) throws TooLittleSpaceException, InvalidRadiusException, NotOwnerOfLobbyException {
+    public Match createMatchForLobby(Lobby lobby, User user, int boardRadius) throws TooLittleSpaceException, InvalidRadiusException, NotOwnerOfLobbyException {
         if (!lobby.isOwner(user.getUsername())) {
             throw new NotOwnerOfLobbyException();
         }
 
-        int boardRadius = 3; // TODO: load boardRadius from configuration in the future
         if (!(3 <= boardRadius && boardRadius <= 6)) throw new InvalidRadiusException(boardRadius);
 
         // random uuid could be replaced in the future to ensure uniqueness
@@ -160,7 +159,7 @@ public class LobbyManager extends SseSender<String> implements NoHeartbeatListen
             this(new CreatedPlayer(player), lobby.isOwner(player.getUsername()));
         }
 
-        private record CreatedPlayer(String username, int id, boolean isAccount) {
+        public record CreatedPlayer(String username, int id, boolean isAccount) {
             public CreatedPlayer(Player player) {
                 this(player.getUsername(), player.getId(), player.isAccount());
             }

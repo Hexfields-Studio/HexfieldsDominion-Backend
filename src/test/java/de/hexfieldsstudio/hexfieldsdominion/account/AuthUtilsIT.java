@@ -7,8 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class AuthUtilsIT {
@@ -31,14 +30,14 @@ class AuthUtilsIT {
     void testGetAuthenticatedUserFailNoAuthentication() {
         SecurityContextHolder.getContext().setAuthentication(null);
 
-        assertThrows(RuntimeException.class, AuthUtils::getAuthenticatedUser);
+        assertThrowsExactly(RuntimeException.class, AuthUtils::getAuthenticatedUser);
     }
 
     @Test
     void testGetAuthenticatedUserFailNotUser() {
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("invalid", null));
 
-        assertThrows(RuntimeException.class, AuthUtils::getAuthenticatedUser);
+        assertThrowsExactly(RuntimeException.class, AuthUtils::getAuthenticatedUser);
     }
 
 }

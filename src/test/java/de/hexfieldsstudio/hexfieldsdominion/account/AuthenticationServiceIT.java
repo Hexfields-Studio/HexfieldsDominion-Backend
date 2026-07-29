@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -108,7 +109,7 @@ class AuthenticationServiceIT {
     void testRegisterFailInvalidCredentials(String username, String password) {
         RegisterDTO registerDTO = new RegisterDTO(username, password);
 
-        assertThrows(InvalidCharactersException.class, () -> authenticationService.register(registerDTO));
+        assertThrowsExactly(InvalidCharactersException.class, () -> authenticationService.register(registerDTO));
 
         assertFalse(allUserRepository.findByUsername(username).isPresent());
     }
@@ -118,7 +119,7 @@ class AuthenticationServiceIT {
         RegisterDTO registerDTO = new RegisterDTO("testuser", "somePw");
         authenticationService.register(registerDTO);
 
-        assertThrows(UserAlreadyExistsException.class, () -> authenticationService.register(registerDTO));
+        assertThrowsExactly(UserAlreadyExistsException.class, () -> authenticationService.register(registerDTO));
     }
 
     @Test
@@ -151,7 +152,7 @@ class AuthenticationServiceIT {
     void testLoginFailUnknownUser() {
         LoginDTO loginDTO = new LoginDTO("testuser", "testpw");
 
-        assertThrows(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
+        assertThrowsExactly(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
     }
 
     @Test
@@ -169,7 +170,7 @@ class AuthenticationServiceIT {
 
         LoginDTO loginDTO = new LoginDTO(username, "otherPw");
 
-        assertThrows(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
+        assertThrowsExactly(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
     }
 
     @ParameterizedTest
@@ -315,10 +316,8 @@ class AuthenticationServiceIT {
         @Override
         @NullMarked
         public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
-            return Stream.of(
-                    Arguments.of(Role.GUEST),
-                    Arguments.of(Role.PLAYER)
-            );
+            return Arrays.stream(Role.values())
+                    .map(Arguments::of);
         }
     }
 

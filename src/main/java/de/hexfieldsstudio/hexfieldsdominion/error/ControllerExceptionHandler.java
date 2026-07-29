@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import tools.jackson.databind.exc.InvalidTypeIdException;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
@@ -27,11 +26,6 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<@NonNull ErrorResponse> handleBadRequest(Exception exception) {
         return responseOf(HttpServletResponse.SC_BAD_REQUEST, exception);
-    }
-
-    @ExceptionHandler(InvalidTypeIdException.class)
-    public ResponseEntity<@NonNull String> handleInvalidType(InvalidTypeIdException exception) {
-        return ResponseEntity.badRequest().body("Unknown DTO type.");
     }
 
     private ResponseEntity<@NonNull ErrorResponse> responseOf(int status, Exception exception) {

@@ -26,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class LobbyController {
 
+    public static final int BOARD_RADIUS = 3; // TODO: load boardRadius from configuration in the future
+
     private final LobbyManager lobbyManager;
 
     @PatchMapping(produces = "application/json")
@@ -60,9 +62,11 @@ public class LobbyController {
     }
 
     @PostMapping("/{lobbyCode}/heartbeat")
-    public void heartbeat(@PathVariable String lobbyCode, @RequestBody HeartbeatDTO dto) throws LobbyNotFoundException {
+    public void heartbeat(@PathVariable String lobbyCode, @RequestBody HeartbeatDTO dto, HttpServletResponse response) throws LobbyNotFoundException {
         Lobby lobby = lobbyManager.findOccupiedLobbyOrThrow(lobbyCode);
         lobby.getHeartbeatHandler().resetTimer(dto.playerId());
+
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 
     @GetMapping("/{lobbyCode}/events")
@@ -75,7 +79,7 @@ public class LobbyController {
     @PostMapping("/{lobbyCode}/match")
     public LobbyManager.CreatedMatchResponse match(@PathVariable String lobbyCode) throws LobbyNotFoundException, NotOwnerOfLobbyException, TooLittleSpaceException {
         Lobby lobby = lobbyManager.findOccupiedLobbyOrThrow(lobbyCode);
-        Match match = lobbyManager.createMatchForLobby(lobby, AuthUtils.getAuthenticatedUser());
+        Match match = lobbyManager.createMatchForLobby(lobby, AuthUtils.getAuthenticatedUser(), BOARD_RADIUS);
         return new LobbyManager.CreatedMatchResponse(match);
     }
 

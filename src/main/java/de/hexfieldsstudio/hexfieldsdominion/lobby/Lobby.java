@@ -15,7 +15,7 @@ import lombok.Setter;
 public class Lobby implements NoHeartbeatListener {
 
     private final HeartbeatHandler heartbeatHandler;
-    private final List<Player> players = new ArrayList<>();
+    private final List<Player> players = Collections.synchronizedList(new ArrayList<>());
     private boolean hasAccountPlayer = false;
     private int nextPlayerId = 0;
     @Setter

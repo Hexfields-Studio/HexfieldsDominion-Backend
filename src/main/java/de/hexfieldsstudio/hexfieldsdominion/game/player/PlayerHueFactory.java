@@ -8,6 +8,6 @@ public class PlayerHueFactory {
     public int generateHueFromHash(String username) {
         String saltedUsername = username + "@hexfields"; // Add a salt to ensure more variability
         int hash = saltedUsername.hashCode();
-        return hash % 360; // Extract hue component (0-360)
+        return Math.abs(hash % 360); // Extract hue component (0-360)
     }
 }

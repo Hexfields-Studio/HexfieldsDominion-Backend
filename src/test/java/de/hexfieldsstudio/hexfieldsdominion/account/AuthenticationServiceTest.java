@@ -80,7 +80,7 @@ class AuthenticationServiceTest {
     void testRegisterFailInvalidCharacters(String username, String password) {
         RegisterDTO registerDTO = new RegisterDTO(username, password);
 
-        assertThrows(InvalidCharactersException.class, () -> authenticationService.register(registerDTO));
+        assertThrowsExactly(InvalidCharactersException.class, () -> authenticationService.register(registerDTO));
     }
 
     @Test
@@ -99,7 +99,7 @@ class AuthenticationServiceTest {
 
         when(userRepository.findByUsernameIgnoreCase(username)).thenReturn(Optional.of(user));
 
-        assertThrows(UserAlreadyExistsException.class, () -> authenticationService.register(registerDTO));
+        assertThrowsExactly(UserAlreadyExistsException.class, () -> authenticationService.register(registerDTO));
     }
 
     @Test
@@ -132,7 +132,7 @@ class AuthenticationServiceTest {
 
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
 
-        assertThrows(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
+        assertThrowsExactly(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
     }
 
     @Test
@@ -152,7 +152,7 @@ class AuthenticationServiceTest {
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
 
-        assertThrows(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
+        assertThrowsExactly(InvalidCredentialsException.class, () -> authenticationService.login(loginDTO));
     }
 
     @Test
