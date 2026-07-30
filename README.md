@@ -5,7 +5,7 @@
 `docker compose up --build`
 
 > [!WARNING]
-> Don't forget the .env!
+> Don't forget the .env! Copy the .env-default to .env
 
 ###### Cleanup
 `docker compose down -v`
